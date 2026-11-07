@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import FadeIn from './FadeIn';
 import { initLivingPortrait } from '../engine/livingPortrait';
 
-const FALLBACK = '/mital-face.png';
+const FALLBACK =
+  'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261031_040619_2f6f349e-a4a7-40db-8e9b-03b6acd8b99a.png&w=1024&q=92';
 
 export default function LivingPortrait() {
   useEffect(() => initLivingPortrait(), []);
