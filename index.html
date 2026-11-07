@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="extras.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
@@ -30,8 +31,9 @@
           <li><a href="#results">Results</a></li>
           <li><a href="#about">About</a></li>
           <li><a href="#experience">Experience</a></li>
-          <li><a href="#work">Selected work</a></li>
-          <li><a href="#approach">Approach</a></li>
+          <li><a href="#playbook">Playbook</a></li>
+          <li><a href="#toolkit">Toolkit</a></li>
+          <li><a href="#work">Work</a></li>
           <li><a href="#contact" class="nav-cta-mobile">Contact</a></li>
         </ul>
       </nav>
@@ -46,51 +48,50 @@
 
     <!-- ============ HERO ============ -->
     <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-bg" aria-hidden="true"><span class="s1"></span><span class="s2"></span><span class="s3"></span><span class="s4"></span><span class="s5"></span><span class="s6"></span></div>
       <div class="wrap hero-grid">
         <figure class="portrait reveal" id="portrait">
           <div class="portrait-shape" aria-hidden="true"></div>
+          <svg class="spin-badge" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+            <defs><path id="circ" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs>
+            <circle cx="60" cy="60" r="58" fill="#14120f"/>
+            <text><textPath href="#circ" startOffset="0" textLength="270" lengthAdjust="spacing">PERFORMANCE MARKETING ✦ META ✦ GOOGLE ADS ✦ </textPath></text>
+            <path d="M60 46 L63 57 L74 60 L63 63 L60 74 L57 63 L46 60 L57 57 Z" fill="#ff5a2b"/>
+          </svg>
+
           <div class="portrait-frame" id="portrait-frame">
-            <!-- Layered character: body image + a masked head copy (turns toward the cursor) + drawn eyelids/mouth for sleep. -->
-            <div class="stage" id="stage">
-              <img class="ch-body" src="assets/mital-portrait.jpg" width="901" height="1600" alt="Illustrated portrait of Mital Chikhaliya, smiling, wearing black-framed glasses" fetchpriority="high">
-              <div class="ch-head" id="ch-head" aria-hidden="true">
-                <svg viewBox="0 0 901 1600" preserveAspectRatio="none" focusable="false">
-                  <defs>
-                    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0" stop-color="#f9c46c"/><stop offset="1" stop-color="#f0ae58"/>
-                    </linearGradient>
-                    <linearGradient id="skinM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9c96a"/><stop offset="1" stop-color="#f8c66b"/></linearGradient>
-                    <filter id="grain" x="0" y="0" width="100%" height="100%">
-                      <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/>
-                      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .75  0 0 0 0 .45  0 0 0 0 .15  0 0 0 1.1 -.35" result="c"/>
-                      <feComposite in="c" in2="SourceAlpha" operator="in"/>
-                    </filter>
-                  </defs>
-                  <g class="lids">
-                    <ellipse cx="327" cy="531" rx="71" ry="65" fill="url(#skin)"/>
-                    <ellipse cx="327" cy="531" rx="71" ry="65" fill="#000" filter="url(#grain)" opacity=".55"/>
-                    <path d="M259 520 Q327 584 395 520" fill="none" stroke="#2a170d" stroke-width="7" stroke-linecap="round"/>
-                    <path d="M262 524 L246 534 M268 534 L256 549 M278 543 L270 559" fill="none" stroke="#2a170d" stroke-width="4.5" stroke-linecap="round"/>
-                    <g transform="rotate(-9 493 480)">
-                      <ellipse cx="493" cy="480" rx="65" ry="66" fill="url(#skin)"/>
-                      <ellipse cx="493" cy="480" rx="65" ry="66" fill="#000" filter="url(#grain)" opacity=".55"/>
-                      <path d="M433 470 Q493 532 553 470" fill="none" stroke="#2a170d" stroke-width="7" stroke-linecap="round"/>
-                      <path d="M549 474 L565 482 M541 485 L553 497 M530 494 L538 509" fill="none" stroke="#2a170d" stroke-width="4.5" stroke-linecap="round"/>
+            <!-- Scene A: seated character (awake / asleep). Head layer turns toward the cursor; lids are drawn for sleep. -->
+            <div class="rig rig-a" data-rig data-scale="1.1" style="--img:url(assets/char-seated.jpg);--sl:-24.5%;--sw:125%;--hx:58.6%;--hy:32.2%;--hrx:19.5%;--hry:21%;--px:57.6%;--py:45.9%">
+              <div class="stage">
+                <img class="ch-body" src="assets/char-seated.jpg" width="1024" height="1024" alt="Illustrated portrait of Mital Chikhaliya seated in an office chair, smiling, wearing black-framed glasses" fetchpriority="high">
+                <div class="ch-head" aria-hidden="true">
+                  <svg viewBox="0 0 1024 1024" preserveAspectRatio="none" focusable="false">
+                    <defs>
+                      <linearGradient id="lidL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a65b3b"/><stop offset="1" stop-color="#cf7b53"/></linearGradient>
+                      <linearGradient id="lidR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f452d"/><stop offset="1" stop-color="#b85d3b"/></linearGradient>
+                      <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.3"/></filter>
+                    </defs>
+                    <g class="lids">
+                      <ellipse cx="536" cy="312" rx="27" ry="21" fill="url(#lidL)" filter="url(#soft)"/>
+                      <path d="M510 311 Q536 329 562 310" fill="none" stroke="#34170f" stroke-width="3.4" stroke-linecap="round"/>
+                      <g transform="rotate(-6 623 299)">
+                        <ellipse cx="623" cy="299" rx="30" ry="22" fill="url(#lidR)" filter="url(#soft)"/>
+                        <path d="M593 299 Q623 319 653 297" fill="none" stroke="#34170f" stroke-width="3.4" stroke-linecap="round"/>
+                      </g>
                     </g>
-                  </g>
-                  <g class="mouth-closed">
-                    <ellipse cx="433" cy="616" rx="64" ry="48" fill="url(#skinM)"/>
-                    <ellipse cx="433" cy="616" rx="64" ry="48" fill="#000" filter="url(#grain)" opacity=".3"/>
-                    <path d="M407 607 Q433 627 459 605" fill="none" stroke="#8c2a1d" stroke-width="6" stroke-linecap="round"/>
-                  </g>
-                </svg>
+                  </svg>
+                </div>
               </div>
             </div>
-            <div class="portrait-missing" role="note">
-              <span class="monogram" aria-hidden="true">MC</span>
-              <span class="missing-label">Portrait placeholder — save the photo as <code>assets/mital-portrait.jpg</code></span>
+            <!-- Scene B: waving character that pops in to greet visitors. -->
+            <div class="rig rig-b" data-rig style="--img:url(assets/char-wave.jpg);--sl:-12.5%;--sw:125%;--hx:50.5%;--hy:26.4%;--hrx:14.5%;--hry:17.5%;--px:50.3%;--py:36.1%">
+              <div class="stage">
+                <img class="ch-body" src="assets/char-wave.jpg" width="1024" height="1024" alt="Illustrated portrait of Mital Chikhaliya standing in an office and waving hello" loading="lazy">
+                <div class="ch-head" aria-hidden="true"></div>
+              </div>
             </div>
           </div>
+          <div class="burst" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
           <div class="zzz" aria-hidden="true"><span>z</span><span>Z</span><span>Z</span></div>
           <p class="speech" id="speech" role="status" aria-live="polite"></p>
           <figcaption class="portrait-tag"><span aria-hidden="true">●</span> Ahmedabad, India</figcaption>
@@ -267,11 +268,77 @@
       </div>
     </section>
 
+    <!-- ============ PLAYBOOK (FUNNEL) ============ -->
+    <section class="section section-dark playbook" id="playbook" aria-labelledby="pb-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="kicker">04 — Playbook</p>
+          <h2 id="pb-title">How I think when a new project lands.</h2>
+          <p class="section-sub">A general approach built on full-funnel marketing (top, middle and bottom of funnel). Pick a stage to see how I think about it, what I use and what I watch.</p>
+        </header>
+
+        <div class="funnel-wrap">
+          <div class="funnel" role="tablist" aria-label="Marketing funnel stages" aria-orientation="vertical">
+            <div class="flow" aria-hidden="true"><i style="--i:0;--x:-30"></i><i style="--i:1;--x:20"></i><i style="--i:2;--x:-8"></i><i style="--i:3;--x:34"></i><i style="--i:4;--x:-22"></i><i style="--i:5;--x:6"></i><i style="--i:6;--x:26"></i><i style="--i:7;--x:-36"></i><i style="--i:8;--x:12"></i><i style="--i:9;--x:-14"></i></div>
+            <span class="tier-label tl-top" aria-hidden="true">TOFU</span>
+            <span class="tier-label tl-mid" aria-hidden="true">MOFU</span>
+            <span class="tier-label tl-bot" aria-hidden="true">BOFU</span>
+            <button class="layer l1 reveal" role="tab" id="tab-aware" aria-selected="true" aria-controls="panel-funnel" data-stage="aware" type="button"><span class="layer-n">01</span><strong>Awareness</strong><small>Be noticed</small></button>
+            <button class="layer l2 reveal" role="tab" id="tab-engage" aria-selected="false" aria-controls="panel-funnel" data-stage="engage" tabindex="-1" type="button"><span class="layer-n">02</span><strong>Engagement</strong><small>Earn interest</small></button>
+            <button class="layer l3 reveal" role="tab" id="tab-consider" aria-selected="false" aria-controls="panel-funnel" data-stage="consider" tabindex="-1" type="button"><span class="layer-n">03</span><strong>Consideration</strong><small>Build trust</small></button>
+            <button class="layer l4 reveal" role="tab" id="tab-buy" aria-selected="false" aria-controls="panel-funnel" data-stage="buy" tabindex="-1" type="button"><span class="layer-n">04</span><strong>Purchase</strong><small>Convert profitably</small></button>
+            <p class="retain reveal"><span aria-hidden="true">↺</span> Then retain: retargeting and lifecycle journeys bring buyers back for repeat purchases.</p>
+          </div>
+
+          <div class="funnel-panel reveal" id="panel-funnel" role="tabpanel" aria-labelledby="tab-aware" tabindex="0" aria-live="polite">
+            <p class="fp-tier" id="fp-tier"></p>
+            <h3 id="fp-title"></h3>
+            <p class="fp-goal" id="fp-goal"></p>
+            <dl class="fp-grid">
+              <div><dt>How I think</dt><dd id="fp-think"></dd></div>
+              <div><dt>First question I ask</dt><dd id="fp-q"></dd></div>
+              <div><dt>Channels &amp; tactics</dt><dd><ul class="chips chips-dark" id="fp-channels"></ul></dd></div>
+              <div><dt>Metrics I watch</dt><dd><ul class="chips chips-dark" id="fp-metrics"></ul></dd></div>
+            </dl>
+            <a class="fp-link" id="fp-link" href="#toolkit">Run the numbers in the toolkit →</a>
+          </div>
+        </div>
+
+        <div class="kickoff">
+          <h3 class="reveal">My first moves on any new project</h3>
+          <ol class="steps stagger">
+            <li class="step reveal"><span class="step-n" aria-hidden="true">01</span><h4>Audit the data</h4><p>Is tracking trustworthy? GA4, GTM, Meta Pixel and CAPI first.</p></li>
+            <li class="step reveal"><span class="step-n" aria-hidden="true">02</span><h4>Know the numbers</h4><p>Margin, break-even ROAS, AOV and LTV set the rules for spend.</p></li>
+            <li class="step reveal"><span class="step-n" aria-hidden="true">03</span><h4>Map the funnel</h4><p>Find where people drop off across top, middle and bottom.</p></li>
+            <li class="step reveal"><span class="step-n" aria-hidden="true">04</span><h4>Plan the tests</h4><p>Creatives, messages, audiences and funnel stages, one clear hypothesis each.</p></li>
+            <li class="step reveal"><span class="step-n" aria-hidden="true">05</span><h4>Launch, then scale</h4><p>Start lean, read results, scale what holds up on ROAS and CAC.</p></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TOOLKIT ============ -->
+    <section class="section section-alt toolkit" id="toolkit" aria-labelledby="tk-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="kicker">05 — Toolkit</p>
+          <h2 id="tk-title">Marketer’s calculators.</h2>
+          <p class="section-sub">The quick maths I reach for most. Change the numbers and the results update. Values stay in your browser, and the defaults are sample figures, not results from my work.</p>
+        </header>
+        <div class="tk reveal">
+          <div class="tk-tabs" role="tablist" aria-label="Calculators" id="tk-tabs"></div>
+          <div class="tk-body" id="tk-body" role="tabpanel" tabindex="0">
+            <noscript><p>The calculators need JavaScript. The formulas: ROAS = revenue ÷ ad spend; ROI = (revenue − cost) ÷ cost; break-even ROAS = 1 ÷ margin.</p></noscript>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ SELECTED WORK ============ -->
     <section class="section section-dark" id="work" aria-labelledby="work-title">
       <div class="wrap">
         <header class="section-head reveal">
-          <p class="kicker">04 — Selected work</p>
+          <p class="kicker">06 — Selected work</p>
           <h2 id="work-title">Campaign highlights.</h2>
           <p class="section-sub">Client campaign data is confidential, so these are described by the work done and the results stated in my resume. No client names, screenshots or extra numbers are shown.</p>
         </header>
@@ -323,23 +390,13 @@
       </div>
     </section>
 
-    <!-- ============ APPROACH ============ -->
-    <section class="section" id="approach" aria-labelledby="approach-title">
-      <div class="wrap">
-        <header class="section-head reveal">
-          <p class="kicker">05 — Approach</p>
-          <h2 id="approach-title">How I like to work.</h2>
-          <p class="section-sub">A general working approach, not a description of any one employer’s process.</p>
-        </header>
-        <ol class="steps stagger">
-          <li class="step reveal"><span class="step-n" aria-hidden="true">01</span><h3>Research</h3><p>Audience, offer, competitors and keyword demand before spend.</p></li>
-          <li class="step reveal"><span class="step-n" aria-hidden="true">02</span><h3>Plan</h3><p>Full-funnel structure, budget split and forecasts tied to ROAS and CAC goals.</p></li>
-          <li class="step reveal"><span class="step-n" aria-hidden="true">03</span><h3>Launch</h3><p>Tracking verified first (GA4, GTM, Pixel, CAPI), then creatives and campaigns.</p></li>
-          <li class="step reveal"><span class="step-n" aria-hidden="true">04</span><h3>Measure</h3><p>Dashboards on the metrics that matter, reviewed on a steady cadence.</p></li>
-          <li class="step reveal"><span class="step-n" aria-hidden="true">05</span><h3>Optimize</h3><p>A/B test, scale what works, retarget drop-offs and feed learnings back.</p></li>
-        </ol>
+
+    <div class="ticker ticker-rev" aria-hidden="true">
+      <div class="ticker-track">
+        <span>ROAS</span><span>CAC</span><span>CPL</span><span>CTR</span><span>CPC</span><span>CPA</span><span>AOV</span><span>LTV</span><span>Conversion rate</span>
+        <span>ROAS</span><span>CAC</span><span>CPL</span><span>CTR</span><span>CPC</span><span>CPA</span><span>AOV</span><span>LTV</span><span>Conversion rate</span>
       </div>
-    </section>
+    </div>
 
     <!-- ============ EDUCATION ============ -->
     <section class="section section-alt compact" id="education" aria-labelledby="edu-title">
@@ -355,7 +412,7 @@
     <!-- ============ CONTACT ============ -->
     <section class="section contact" id="contact" aria-labelledby="contact-title">
       <div class="wrap contact-inner">
-        <p class="kicker reveal">06 — Contact</p>
+        <p class="kicker reveal">07 — Contact</p>
         <h2 id="contact-title" class="reveal">Let’s talk about <span class="accent-text">growth</span>.</h2>
         <p class="section-sub reveal">Hiring for performance marketing, or have a brand that wants profitable growth on Meta and Google? I’d be glad to hear from you.</p>
         <ul class="contact-list stagger">
@@ -373,6 +430,31 @@
       <a href="#top">Back to top ↑</a>
     </div>
   </footer>
+
+  <!-- ============ CORNER GUIDE + SCROLL DEPTH ============ -->
+  <aside class="guide" id="guide" aria-label="Site guide">
+    <div class="guide-bubble" id="guide-bubble">
+      <span id="guide-text"></span>
+      <a id="guide-link" href="#results"></a>
+    </div>
+    <div class="guide-char rig" id="guide-rig" data-rig data-reach="320" data-scale="1" style="--img:url(assets/guide-phone.png);--sl:0%;--sw:100%;--hx:52.9%;--hy:32.4%;--hrx:39.4%;--hry:31.8%;--px:52.9%;--py:56.8%">
+      <span class="guide-disc" aria-hidden="true"></span>
+      <div class="stage">
+        <img class="ch-body" src="assets/guide-phone.png" width="420" height="597" alt="" loading="lazy">
+        <div class="ch-head" aria-hidden="true"></div>
+      </div>
+    </div>
+    <button class="guide-toggle" id="guide-toggle" type="button" aria-pressed="true" aria-label="Hide site guide"><span aria-hidden="true">✕</span></button>
+  </aside>
+  <button class="guide-show" id="guide-show" type="button" hidden>Show guide</button>
+
+  <button class="depth" id="depth" type="button" aria-label="Scroll depth 0 percent. Back to top">
+    <svg viewBox="0 0 56 56" aria-hidden="true" focusable="false"><circle class="d-track" cx="28" cy="28" r="24"/><circle class="d-bar" id="depth-bar" cx="28" cy="28" r="24" pathLength="100"/></svg>
+    <span class="d-num" id="depth-num" aria-hidden="true">0%</span>
+    <span class="d-label" aria-hidden="true">depth</span>
+    <span class="d-ticks" aria-hidden="true"><i data-t="25"></i><i data-t="50"></i><i data-t="75"></i><i data-t="100"></i></span>
+  </button>
+  <div class="halo" id="halo" aria-hidden="true"></div>
 
   <!-- ============ PROJECT DETAIL DIALOGS ============ -->
   <dialog class="dialog" id="d-scale" aria-labelledby="d-scale-t">
@@ -463,6 +545,8 @@
   </dialog>
 
   <script src="script.js"></script>
-  <script src="character.js"></script>
+  <script src="characters.js"></script>
+  <script src="tools.js"></script>
+  <script src="fx.js"></script>
 </body>
 </html>

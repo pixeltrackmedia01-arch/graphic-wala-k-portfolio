@@ -5,14 +5,6 @@
 
   $('#year').textContent = new Date().getFullYear();
 
-  /* ---- Portrait: show placeholder only if the image is missing ---- */
-  const portrait = $('#portrait');
-  const img = $('img', portrait);
-  const ok = () => portrait.classList.add('has-photo');
-  const bad = () => img.classList.add('is-broken');
-  if (img.complete) (img.naturalWidth ? ok : bad)();
-  else { img.addEventListener('load', ok); img.addEventListener('error', bad); }
-
   /* ---- Mobile menu ---- */
   const btn = $('.menu-btn');
   const nav = $('.nav');
