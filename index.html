@@ -49,14 +49,50 @@
       <div class="wrap hero-grid">
         <figure class="portrait reveal" id="portrait">
           <div class="portrait-shape" aria-hidden="true"></div>
-          <div class="portrait-frame">
-            <!-- Add the portrait at assets/mital-portrait.jpg (any aspect; ~4:5 works best). -->
-            <img src="assets/mital-portrait.jpg" width="800" height="1000" alt="Portrait of Mital Chikhaliya" fetchpriority="high">
+          <div class="portrait-frame" id="portrait-frame">
+            <!-- Layered character: body image + a masked head copy (turns toward the cursor) + drawn eyelids/mouth for sleep. -->
+            <div class="stage" id="stage">
+              <img class="ch-body" src="assets/mital-portrait.jpg" width="901" height="1600" alt="Illustrated portrait of Mital Chikhaliya, smiling, wearing black-framed glasses" fetchpriority="high">
+              <div class="ch-head" id="ch-head" aria-hidden="true">
+                <svg viewBox="0 0 901 1600" preserveAspectRatio="none" focusable="false">
+                  <defs>
+                    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#f9c46c"/><stop offset="1" stop-color="#f0ae58"/>
+                    </linearGradient>
+                    <linearGradient id="skinM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9c96a"/><stop offset="1" stop-color="#f8c66b"/></linearGradient>
+                    <filter id="grain" x="0" y="0" width="100%" height="100%">
+                      <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n"/>
+                      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .75  0 0 0 0 .45  0 0 0 0 .15  0 0 0 1.1 -.35" result="c"/>
+                      <feComposite in="c" in2="SourceAlpha" operator="in"/>
+                    </filter>
+                  </defs>
+                  <g class="lids">
+                    <ellipse cx="327" cy="531" rx="71" ry="65" fill="url(#skin)"/>
+                    <ellipse cx="327" cy="531" rx="71" ry="65" fill="#000" filter="url(#grain)" opacity=".55"/>
+                    <path d="M259 520 Q327 584 395 520" fill="none" stroke="#2a170d" stroke-width="7" stroke-linecap="round"/>
+                    <path d="M262 524 L246 534 M268 534 L256 549 M278 543 L270 559" fill="none" stroke="#2a170d" stroke-width="4.5" stroke-linecap="round"/>
+                    <g transform="rotate(-9 493 480)">
+                      <ellipse cx="493" cy="480" rx="65" ry="66" fill="url(#skin)"/>
+                      <ellipse cx="493" cy="480" rx="65" ry="66" fill="#000" filter="url(#grain)" opacity=".55"/>
+                      <path d="M433 470 Q493 532 553 470" fill="none" stroke="#2a170d" stroke-width="7" stroke-linecap="round"/>
+                      <path d="M549 474 L565 482 M541 485 L553 497 M530 494 L538 509" fill="none" stroke="#2a170d" stroke-width="4.5" stroke-linecap="round"/>
+                    </g>
+                  </g>
+                  <g class="mouth-closed">
+                    <ellipse cx="433" cy="616" rx="64" ry="48" fill="url(#skinM)"/>
+                    <ellipse cx="433" cy="616" rx="64" ry="48" fill="#000" filter="url(#grain)" opacity=".3"/>
+                    <path d="M407 607 Q433 627 459 605" fill="none" stroke="#8c2a1d" stroke-width="6" stroke-linecap="round"/>
+                  </g>
+                </svg>
+              </div>
+            </div>
             <div class="portrait-missing" role="note">
               <span class="monogram" aria-hidden="true">MC</span>
               <span class="missing-label">Portrait placeholder — save the photo as <code>assets/mital-portrait.jpg</code></span>
             </div>
           </div>
+          <div class="zzz" aria-hidden="true"><span>z</span><span>Z</span><span>Z</span></div>
+          <p class="speech" id="speech" role="status" aria-live="polite"></p>
           <figcaption class="portrait-tag"><span aria-hidden="true">●</span> Ahmedabad, India</figcaption>
         </figure>
 
@@ -427,5 +463,6 @@
   </dialog>
 
   <script src="script.js"></script>
+  <script src="character.js"></script>
 </body>
 </html>
