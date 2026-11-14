@@ -67,6 +67,9 @@ export function Character() {
   const blink = useMotionValue(0);
   const sleepy = useMotionValue(0);
   const tilt = useMotionValue(0);
+  const waveOn = useMotionValue(0);          // 0 = standing pose, 1 = raised-hand pose
+  const handRot = useMotionValue(0);         // wrist rotation (deg) while waving
+  const standOpacity = useTransform(waveOn, (v) => 1 - v);
   const lid = useTransform([blink, sleepy], ([b, s]: number[]) => Math.max(b, s));
   const headRotate = useTransform([gx, tilt], ([g, t]: number[]) => g * 0.9 + t);
   const headX = useTransform(gx, (v) => `${v * 0.22}%`);
@@ -122,6 +125,23 @@ export function Character() {
     return () => { alive = false; clearTimeout(t); blink.set(0); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduce, blink, gxT, gyT]);
+  /* real hand wave: crossfade to the raised-hand pose, rotate the hand around the wrist, then relax */
+  useEffect(() => {
+    if (reduce || !RIG.waveHand) return;
+    const plan = state === "greeting" ? { delay: 0.8, dur: 2.6 } : state === "welcome-back" ? { delay: 0.1, dur: 1.7 } : null;
+    if (!plan) { animate(waveOn, 0, { duration: 0.4 }); animate(handRot, 0, { duration: 0.3 }); return; }
+    let alive = true;
+    const t = setTimeout(async () => {
+      if (!alive) return;
+      await animate(waveOn, 1, { duration: 0.35, ease: "easeOut" });
+      if (!alive) return;
+      await animate(handRot, [0, -15, 11, -14, 10, -11, 7, 0], { duration: plan.dur, ease: "easeInOut" });
+      if (!alive) return;
+      await animate(waveOn, 0, { duration: 0.5, ease: "easeInOut" });
+    }, plan.delay * 1000);
+    return () => { alive = false; clearTimeout(t); };
+  }, [state, reduce, waveOn, handRot]);
+
   /* sleepiness + head tilt follow the state machine */
   useEffect(() => {
     const target = state === "sleeping" ? { s: 1, t: 4.2, d: 2.2 } : state === "idle" ? { s: 0.72, t: 1.8, d: 3 } : { s: 0, t: 0, d: 0.7 };
@@ -132,18 +152,29 @@ export function Character() {
   }, [state, reduce, sleepy, tilt]);
 
   const bubble = state === "greeting" || state === "welcome-back" ? BUBBLES[state] : sleepBubble ? { a: "Taking a little break... 😴" } : undefined;
-  const hop = reduce ? undefined : state === "greeting"
-    ? { y: [0, -10, 0, -6, 0], transition: { duration: 1.5, delay: 0.7, times: [0, 0.3, 0.55, 0.78, 1], ease: "easeOut" as const } }
-    : state === "waking" || state === "welcome-back" ? { y: [0, -9, 0], transition: { duration: 0.8, ease: "easeOut" as const } } : { y: 0 };
+  const hop = reduce ? undefined : state === "waking" ? { y: [0, -9, 0], transition: { duration: 0.8, ease: "easeOut" as const } } : { y: 0 };
 
   return (
     <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }}>
       <motion.div className="absolute inset-0" animate={hop} initial={reduce ? false : { y: 20 }}>
         <motion.div className="absolute inset-0" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }}>
-          {/* body layer (static) */}
+          {/* body layers: standing pose (default) and raised-hand pose; both are masked off above the neck */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={RIG.src} width={W} height={H} alt="Illustrated 3D character of Mital Chikhaliya standing in a cream dress" fetchPriority="high" decoding="async" draggable={false}
-            className="absolute inset-0 h-full w-full select-none" style={{ WebkitMaskImage: BODY_MASK, maskImage: BODY_MASK }} />
+          <motion.img src={RIG.src} width={W} height={H} alt="Illustrated 3D character of Mital Chikhaliya" fetchPriority="high" decoding="async" draggable={false}
+            className="absolute inset-0 h-full w-full select-none" style={{ opacity: standOpacity, WebkitMaskImage: BODY_MASK, maskImage: BODY_MASK }} />
+          {RIG.waveBody && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <motion.img src={RIG.waveBody} width={W} height={H} alt="" aria-hidden loading="lazy" decoding="async" draggable={false}
+                className="pointer-events-none absolute inset-0 h-full w-full select-none" style={{ opacity: waveOn, WebkitMaskImage: BODY_MASK, maskImage: BODY_MASK }} />
+              {/* the waving hand: its own layer, pivoting at the wrist */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <motion.img src={RIG.waveHand.src} alt="" aria-hidden loading="lazy" decoding="async" draggable={false}
+                className="pointer-events-none absolute select-none"
+                style={{ opacity: waveOn, rotate: handRot, left: `${(RIG.waveHand.x / W) * 100}%`, top: `${(RIG.waveHand.y / H) * 100}%`, width: `${(RIG.waveHand.w / W) * 100}%`, height: `${(RIG.waveHand.h / H) * 100}%`,
+                  originX: (RIG.waveHand.pivot[0] - RIG.waveHand.x) / RIG.waveHand.w, originY: (RIG.waveHand.pivot[1] - RIG.waveHand.y) / RIG.waveHand.h }} />
+            </>
+          )}
           {/* head layer: same image above the neck, with eye rig; moves very slightly toward the cursor */}
           <motion.div className="absolute inset-0" style={{ x: headX, y: headY, rotate: headRotate, originX: RIG.pivot[0] / W, originY: RIG.pivot[1] / H, WebkitMaskImage: HEAD_MASK, maskImage: HEAD_MASK }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -161,7 +192,7 @@ export function Character() {
         {bubble && (
           <motion.div key={bubble.a} role="status" aria-live="polite"
             initial={{ opacity: 0, scale: 0.8, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-none absolute left-[68%] top-[-2%] z-10 w-max max-w-[9rem] origin-bottom-left rounded-2xl rounded-bl-md border border-clay bg-paper px-3.5 py-2 text-[0.78rem] leading-snug shadow-lg shadow-brown/15 sm:left-[74%] sm:top-[0%] sm:max-w-[11.5rem] sm:px-4 sm:py-2.5 sm:text-[0.82rem]">
+            className="pointer-events-none absolute left-[66%] top-[-1%] z-10 w-max max-w-[9rem] origin-bottom-left rounded-2xl rounded-bl-md border border-clay bg-paper px-3.5 py-2 text-[0.78rem] leading-snug shadow-lg shadow-brown/15 sm:left-[68%] sm:top-[0%] sm:max-w-[11.5rem] sm:px-4 sm:py-2.5 sm:text-[0.82rem]">
             <p className="font-medium">{bubble.a}{bubble.wave && <span aria-hidden className={`ml-1 inline-block origin-[70%_80%] ${reduce ? "" : "wave-hand"}`}>👋</span>}</p>
             {bubble.b && <p className="text-ink-soft">{bubble.b}</p>}
           </motion.div>
@@ -172,7 +203,7 @@ export function Character() {
       <AnimatePresence>
         {state === "sleeping" && (
           <motion.div aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}
-            className="pointer-events-none absolute left-[72%] top-[3%] z-10 font-display font-semibold text-terra-deep">
+            className="pointer-events-none absolute left-[66%] top-[3%] z-10 font-display font-semibold text-terra-deep">
             {["Z", "z", "z"].map((z, i) => (
               <span key={i} className={`absolute ${reduce ? "" : "zzz"}`} style={{ animationDelay: `${i * 0.9}s`, fontSize: `${1.25 - i * 0.2}rem`, left: i * 10, top: -i * 12, opacity: reduce ? 0.8 - i * 0.2 : undefined }}>{z}</span>
             ))}

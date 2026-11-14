@@ -1,8 +1,9 @@
 {
-  "_comment": "All coordinates are in SOURCE-image pixels (scripts/source/mital-character-new.webp). Re-measure when the character image changes, then run: python3 scripts/make_character.py <source-image>",
-  "neck": { "cutTop": 400, "cutBottom": 430, "pivotX": 362, "pivotY": 396 },
+  "_comment": "SOURCE-image pixels (both pose images share one camera). Re-measure when the artwork changes, then: python3 scripts/make_character.py scripts/source/mital-pose-stand.webp scripts/source/mital-pose-wave.webp",
+  "neck": { "cutTop": 400, "cutBottom": 430, "pivotX": 365, "pivotY": 396 },
+  "hand": { "polygon": [[120,290],[250,290],[250,416],[234,432],[229,452],[120,452]], "pivot": [201, 452], "fade": 16 },
   "eyes": {
-    "a": { "iris": [328.3, 298.0, 7.0], "open": [328.2, 298.6, 11.8, 6.9, 0], "lidSample": [328, 289], "cheekSample": [328, 309], "scleraSample": [320, 300] },
-    "b": { "iris": [377.6, 296.6, 7.0], "open": [381.0, 295.6, 13.0, 6.8, 0], "lidSample": [378, 286], "cheekSample": [378, 306], "scleraSample": [390, 297] }
+    "a": { "iris": [332.5, 299.6, 6.0], "open": [330.0, 299.5, 12.5, 7.3, 0], "lidSample": [330, 288], "cheekSample": [330, 311], "scleraSample": [324, 301] },
+    "b": { "iris": [386.5, 299.2, 6.4], "open": [389.5, 298.8, 14.0, 7.2, 0], "lidSample": [388, 287], "cheekSample": [388, 309], "scleraSample": [396, 300] }
   }
 }
