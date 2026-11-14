@@ -59,7 +59,9 @@ export function Character() {
   const { state, sleepBubble } = useCharacterMachine();
   const id = useId().replace(/:/g, "");
   const root = useRef<HTMLDivElement>(null);
-  const [pose, setPose] = useState<PoseName>("hello");
+  const [hover, setHover] = useState<PoseName | null>(null);
+  const [settled, setSettled] = useState(false);          // flips once, 10 s after the hero loads
+  const pose: PoseName = hover ?? (settled ? "point" : "hello");
   preload(RIG.src, { as: "image", fetchPriority: "high" });
 
   /* motion values: updated outside React, so tracking never re-renders */
@@ -83,12 +85,19 @@ export function Character() {
 
   /* pose changes come from the navigation (hover) via a window event */
   useEffect(() => {
-    const onPose = (e: Event) => setPose(((e as CustomEvent<PoseName | null>).detail ?? "hello"));
+    const onPose = (e: Event) => setHover(((e as CustomEvent<PoseName | null>).detail ?? null));
     window.addEventListener("character-pose", onPose);
     return () => window.removeEventListener("character-pose", onPose);
   }, []);
+
+  /* one timer, started when the hero mounts: after 10 s the pointing pose becomes the resting pose (never loops) */
   useEffect(() => {
-    const a = animate(baseOpacity, pose === "hello" ? 1 : 0, { duration: reduce ? 0 : 0.55, ease: "easeInOut" });
+    const warm = new Image(); warm.src = RIG.poses.point.src; warm.decode?.().catch(() => {});   // preload so the fade never waits on the network
+    const t = setTimeout(() => setSettled(true), 10_000);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    const a = animate(baseOpacity, pose === "hello" ? 1 : 0, { duration: reduce ? 0 : 0.7, ease: "easeInOut" });
     if (pose !== "hello") { gxT.set(0); gyT.set(0); }
     return () => a.stop();
   }, [pose, reduce, baseOpacity, gxT, gyT]);
@@ -147,7 +156,7 @@ export function Character() {
     if (w.amp < 0.002 && tAmp === 0) { elbowRot.set(0); wristRot.set(0); fingerRot.set(0); return; }
     w.phase += dt * w.freq * Math.PI * 2;
     const sw = (lag: number) => Math.sin(w.phase - lag) + 0.18 * Math.sin(2 * (w.phase - lag) + 0.7); // slightly asymmetric, less mechanical
-    elbowRot.set(w.amp * 4 * sw(0));
+    elbowRot.set(w.amp * 1.8 * sw(0));
     wristRot.set(w.amp * 9 * sw(0.85));
     fingerRot.set(w.amp * 4 * sw(1.7));
   });
@@ -207,9 +216,9 @@ export function Character() {
             const fade = p.fadeBottom ? `linear-gradient(to bottom, #000 ${((p.bottom - 60) / H) * 100}%, transparent ${(p.bottom / H) * 100}%)` : undefined;
             return (
               // eslint-disable-next-line @next/next/no-img-element
-              <motion.img key={n} src={p.src} width={W} height={H} alt="" aria-hidden loading="lazy" decoding="async" draggable={false}
+              <motion.img key={n} src={p.src} width={W} height={H} alt="" aria-hidden loading="eager" fetchPriority="low" decoding="async" draggable={false}
                 className="pointer-events-none absolute inset-0 h-full w-full select-none" initial={{ opacity: 0 }} animate={{ opacity: pose === n ? 1 : 0 }}
-                transition={{ duration: reduce ? 0 : 0.55, ease: "easeInOut" }} style={fade ? { WebkitMaskImage: fade, maskImage: fade } : undefined} />
+                transition={{ duration: reduce ? 0 : 0.7, ease: "easeInOut" }} style={fade ? { WebkitMaskImage: fade, maskImage: fade } : undefined} />
             );
           })}
         </motion.div>

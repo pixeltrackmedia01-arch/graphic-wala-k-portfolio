@@ -25,10 +25,16 @@ for name, p in cfg["poses"].items():
 # --- common canvas in BASE-pose pixel space -------------------------------------------------
 base = cfg["base"]; bm, bd = eye_mid(cfg["poses"][base])
 placed = {}  # name -> (RGBA image scaled, offset x, y in base space)
+def bbox_h(im):
+    a = np.array(im)[..., 3] > 128; ys, xs = np.where(a); return ys.min(), ys.max()
+bt, bb_ = bbox_h(cuts[base])
 for name, p in cfg["poses"].items():
     m, d = eye_mid(p); s = bd / d
+    if p.get("align") == "height":      # same figure height as the base; horizontally by the face centre
+        t, b_ = bbox_h(cuts[name]); s = (bb_ - bt) / (b_ - t)
     im = cuts[name]; im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
     ox, oy = bm[0] - m[0] * s, bm[1] - m[1] * s
+    if p.get("align") == "height": oy = bt - t * s
     placed[name] = (im, ox, oy, s)
 def bb(im): return im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
 x0 = y0 = 1e9; x1 = y1 = -1e9
@@ -50,15 +56,21 @@ for name in cfg["poses"]:
     bbx = bb(c); rig["poses"][name] = {"src": f"/images/character/mital-{name}.webp", "fadeBottom": bool(cfg["poses"][name].get("cropped", False)), "bottom": bbx[3]}
 
 # base: segmented raised arm (elbow -> wrist -> knuckles), full-canvas sprites so every layer shares one coordinate space
-A = cfg["arm"]; arr = np.array(base_c).astype(np.float32)
+A = json.loads(json.dumps(cfg["arm"]))
+A["boundary"] = [[px - x0, py - y0] for px, py in A["boundary"]]; A["bodyErase"] = A["bodyErase"] - y0
+for _k in ("elbow", "wrist", "knuckle"):
+    A[_k]["pivot"] = [A[_k]["pivot"][0] - x0, A[_k]["pivot"][1] - y0]; A[_k]["line"] -= y0
+arr = np.array(base_c).astype(np.float32)
 ys_ = np.arange(H, dtype=np.float32)[:, None] * np.ones((1, W), np.float32)
-region = poly_mask((W, H), [[px, py] for px, py in A["boundary"]])
+region = poly_mask((W, H), [[px, py] for px, py in A["boundary"]])           # what leaves the body
+grow = A.get("spriteGrow", 7)                                                  # moving layers overlap the body by a few px -> no hairline gap at the seam
+region_spr = poly_mask((W, H), [[px + (grow if px > 20 else 0), py] for px, py in A["boundary"]])
 def ramp_out(line, fade):  # 1 above the joint line, fading to 0 below it
     return np.clip(1 - (ys_ - line) / fade, 0, 1)
 e, w_, k_ = A["elbow"], A["wrist"], A["knuckle"]
-a_fingers = region * (ys_ < k_["line"] + k_["fade"]) * ramp_out(k_["line"], k_["fade"])
-a_palm = region * (ys_ >= k_["line"]) * (ys_ < w_["line"] + w_["fade"]) * ramp_out(w_["line"], w_["fade"]) * 0 + region * (ys_ >= k_["line"]) * (ys_ < w_["line"]) + region * (ys_ >= w_["line"]) * (ys_ < w_["line"] + w_["fade"]) * ramp_out(w_["line"], w_["fade"])
-a_fore = region * (ys_ >= w_["line"]) * (ys_ < e["line"]) + region * (ys_ >= e["line"]) * (ys_ < e["line"] + e["fade"]) * ramp_out(e["line"], e["fade"])
+a_fingers = region_spr * (ys_ < k_["line"] + k_["fade"]) * ramp_out(k_["line"], k_["fade"])
+a_palm = region_spr * (ys_ >= k_["line"]) * (ys_ < w_["line"]) + region_spr * (ys_ >= w_["line"]) * (ys_ < w_["line"] + w_["fade"]) * ramp_out(w_["line"], w_["fade"])
+a_fore = region_spr * (ys_ >= w_["line"]) * (ys_ < e["line"]) + region_spr * (ys_ >= e["line"]) * (ys_ < e["line"] + e["fade"]) * ramp_out(e["line"], e["fade"])
 a_body = 1 - region * (ys_ < A.get("bodyErase", e["line"]))  # arm removed from the body only where background (not upper arm) lies behind it
 def sprite(a, name, **kw):
     o = arr.copy(); o[..., 3] = arr[..., 3] * a

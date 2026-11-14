@@ -48,6 +48,10 @@ def cutout(img: Image.Image, use_rembg: bool) -> Image.Image:
     # leftovers of a baked-in grey/white checkerboard: neutral (no colour cast) mid-light pixels that are still semi-transparent
     neutral = ((arr.max(axis=2) - arr.min(axis=2)) < 10) & (arr.min(axis=2) > 140)
     a = np.where(neutral & (a < 0.97), 0.0, a)
+    # pale lilac/grey fringe: low-saturation light pixels on the soft edge (backdrop bleeding into skin/hair edges)
+    fringe = ((arr.max(axis=2) - arr.min(axis=2)) < 30) & (arr.min(axis=2) > 150) & (arr[..., 0] < 235)
+    edge = (a > 0.02) & (a < 0.985)
+    a = np.where(fringe & edge, 0.0, a)
     # tighten soft alpha so no pale haze survives, then 1px inward trim + soften
     t = np.clip((a - 0.14) / 0.72, 0, 1)
     a = t * t * (3 - 2 * t)

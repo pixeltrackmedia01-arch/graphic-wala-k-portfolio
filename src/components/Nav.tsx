@@ -5,8 +5,8 @@ import { Menu, X } from "lucide-react";
 import { NAV } from "@/lib/content";
 import { scrollToId, NAV_OFFSET } from "@/lib/scroll";
 
-const POSE_FOR: Record<string, string> = { home: "hello", about: "think", work: "point", experience: "hello", skills: "point", contact: "hello" };
-const setPose = (id: string | null) => window.dispatchEvent(new CustomEvent("character-pose", { detail: id ? POSE_FOR[id] : "hello" }));
+const POSE_FOR: Record<string, string> = { about: "think" };
+const setPose = (id: string | null) => window.dispatchEvent(new CustomEvent("character-pose", { detail: id ? (POSE_FOR[id] ?? null) : null }));
 
 export function Nav() {
   const [active, setActive] = useState("home");
