@@ -1,0 +1,16 @@
+{
+  "_comment": "Pixel coordinates are in each SOURCE image. eyeCentres = iris centres (used to align poses for crossfades).",
+  "base": "hello",
+  "poses": {
+    "hello": { "file": "pose-10.webp", "eyeCentres": [[515.5, 310], [606.5, 301]] },
+    "point": { "file": "pose-9.webp",  "eyeCentres": [[527, 315], [622, 322]] },
+    "think": { "file": "pose-6.webp",  "eyeCentres": [[666, 340], [789, 340]], "cropped": true }
+  },
+  "neck": { "cutTop": 505, "cutBottom": 535, "pivotX": 565, "pivotY": 500 },
+  "faceCentre": [561, 305],
+  "hand": { "polygon": [[170,380],[395,380],[395,600],[372,612],[362,640],[170,640]], "pivot": [335, 630], "fade": 16, "keepWrist": 8 },
+  "eyes": {
+    "a": { "iris": [515.5, 310, 12.2], "open": [511, 309.5, 23, 14, 0], "lidSample": [511, 284], "cheekSample": [511, 332], "scleraSample": [495, 309] },
+    "b": { "iris": [606.5, 301, 12.2], "open": [609.5, 300, 24, 13.5, 0], "lidSample": [609, 279], "cheekSample": [609, 322], "scleraSample": [625, 303] }
+  }
+}

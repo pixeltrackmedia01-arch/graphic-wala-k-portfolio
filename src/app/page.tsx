@@ -1,4 +1,5 @@
 import { Nav } from "@/components/Nav";
+import { ScrollProgress } from "@/components/ScrollProgress";
 import { Hero } from "@/components/Hero";
 import { Funnel } from "@/components/Funnel";
 import { About } from "@/components/About";
@@ -14,6 +15,7 @@ export default function Page() {
   return (
     <>
       <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-ink focus:px-5 focus:py-3 focus:text-cream">Skip to content</a>
+      <ScrollProgress />
       <Nav />
       <main>
         <Hero />

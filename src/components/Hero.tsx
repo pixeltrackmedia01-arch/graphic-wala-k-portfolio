@@ -1,11 +1,12 @@
 "use client";
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
 import { ArrowDownRight, MapPin } from "lucide-react";
 import { PROFILE } from "@/lib/content";
 import { RIG } from "@/lib/characterRig";
 import { scrollToId as scrollTo, NAV_OFFSET } from "@/lib/scroll";
 import { Character } from "./Character";
+import { Magnetic } from "./Magnetic";
 
 const go = (id: string) => (e: React.MouseEvent) => { e.preventDefault(); scrollTo(id, NAV_OFFSET); };
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -24,6 +25,14 @@ export function Hero() {
   const bgY = useTransform(scrollYProgress, [0, 1], [0, 120]);
   const line = "Turning Marketing Data Into Measurable Growth.".split(" ");
   const ar = RIG.w / RIG.h;
+  const px = useMotionValue(0), py = useMotionValue(0);
+  const sx = useSpring(px, { stiffness: 50, damping: 20 }), sy = useSpring(py, { stiffness: 50, damping: 20 });
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const mv = (e: PointerEvent) => { if (e.pointerType === "touch") return; px.set((e.clientX / innerWidth - 0.5) * -22); py.set((e.clientY / innerHeight - 0.5) * -14); };
+    addEventListener("pointermove", mv, { passive: true });
+    return () => removeEventListener("pointermove", mv);
+  }, [px, py]);
 
   return (
     <section id="home" ref={ref} className="grain relative isolate overflow-hidden pt-20 md:pt-24" aria-labelledby="hero-title">
@@ -59,15 +68,15 @@ export function Hero() {
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.75, ease }} className="mt-8 flex flex-wrap gap-3">
-            <a href="#work" onClick={go("work")}
+            <Magnetic><a href="#work" onClick={go("work")}
               className="group inline-flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-terra hover:shadow-lg hover:shadow-terra/25 focus-visible:outline-offset-4 active:translate-y-0">
               Explore My Work
               <ArrowDownRight size={17} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
-            </a>
-            <a href="#contact" onClick={go("contact")}
+            </a></Magnetic>
+            <Magnetic><a href="#contact" onClick={go("contact")}
               className="inline-flex h-12 items-center rounded-full border border-ink/25 px-6 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:bg-paper focus-visible:outline-offset-4 active:translate-y-0">
               Let&apos;s Connect
-            </a>
+            </a></Magnetic>
           </motion.div>
 
           {/* compact information strip */}
@@ -92,8 +101,8 @@ export function Hero() {
           <motion.div style={{ y: imgY, ["--ar" as string]: ar }}
             className="relative flex w-full items-end justify-center [--ch:min(46svh,25rem)] sm:[--ch:min(54svh,30rem)] lg:[--ch:min(calc(100svh-8.5rem),50rem)]">
             {/* soft stage: a large circle + fine ring give the figure presence without clutter */}
-            <div aria-hidden className="absolute bottom-[6%] left-1/2 -z-10 aspect-square w-[min(100%,calc(var(--ch)*0.95))] -translate-x-1/2 rounded-full bg-gradient-to-b from-sand/90 to-sand/30" />
-            <div aria-hidden className="absolute bottom-[6%] left-1/2 -z-10 aspect-square w-[min(100%,calc(var(--ch)*0.95))] -translate-x-[46%] translate-y-[2%] rounded-full border border-terra/25" />
+            <motion.div aria-hidden style={{ x: sx, y: sy }} className="absolute bottom-[6%] left-1/2 -z-10 -ml-[min(50%,calc(var(--ch)*0.475))] aspect-square w-[min(100%,calc(var(--ch)*0.95))] rounded-full bg-gradient-to-b from-sand/90 to-sand/30" />
+            <motion.div aria-hidden style={{ x: sx, y: sy }} className="absolute bottom-[4%] left-1/2 -z-10 -ml-[min(46%,calc(var(--ch)*0.44))] aspect-square w-[min(100%,calc(var(--ch)*0.95))] rounded-full border border-terra/25" />
             <div aria-hidden className="absolute -bottom-1 left-1/2 -z-10 h-5 w-[min(60%,calc(var(--ch)*0.34))] -translate-x-1/2 rounded-[50%] bg-brown/25 blur-md" />
             <div className="relative" style={{ width: "calc(var(--ch) * var(--ar))" }}>
               <Character />

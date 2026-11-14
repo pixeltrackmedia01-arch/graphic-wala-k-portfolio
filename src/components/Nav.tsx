@@ -5,6 +5,9 @@ import { Menu, X } from "lucide-react";
 import { NAV } from "@/lib/content";
 import { scrollToId, NAV_OFFSET } from "@/lib/scroll";
 
+const POSE_FOR: Record<string, string> = { home: "hello", about: "think", work: "point", experience: "hello", skills: "point", contact: "hello" };
+const setPose = (id: string | null) => window.dispatchEvent(new CustomEvent("character-pose", { detail: id ? POSE_FOR[id] : "hello" }));
+
 export function Nav() {
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
@@ -59,6 +62,7 @@ export function Nav() {
           {NAV.map((n) => (
             <li key={n.id}>
               <a href={`#${n.id}`} onClick={go(n.id)} aria-current={active === n.id ? "true" : undefined}
+                onPointerEnter={(e) => e.pointerType === "mouse" && setPose(n.id)} onPointerLeave={() => setPose(null)} onFocus={() => setPose(n.id)} onBlur={() => setPose(null)}
                 className={`relative rounded-full px-4 py-2 text-sm transition-colors ${active === n.id ? "text-ink" : "text-ink-soft hover:text-ink"}`}>
                 {n.label}
                 {active === n.id && <motion.span layoutId="nav-dot" className="absolute inset-x-4 -bottom-0.5 h-0.5 rounded bg-terra" />}
