@@ -16,15 +16,21 @@ export const RIG = {
   },
   "src": "/images/character/mital.webp",
   "body": "/images/character/mital-body.webp",
-  "hand": {
-    "src": "/images/character/mital-hand.webp",
-    "x": 6,
-    "y": 276,
-    "w": 176,
-    "h": 225,
-    "pivot": [
-      121,
-      490
+  "arm": {
+    "forearm": "/images/character/mital-forearm.webp",
+    "palm": "/images/character/mital-palm.webp",
+    "fingers": "/images/character/mital-fingers.webp",
+    "elbow": [
+      21.448,
+      34.363
+    ],
+    "wrist": [
+      15.818,
+      26.39
+    ],
+    "knuckle": [
+      13.405,
+      21.673
     ]
   },
   "cutTop": 365,

@@ -29,10 +29,16 @@ export const PERSONAL_EDITABLE = {
   extraNote: "",
 };
 
-/** Original campaign reports (served from /public/portfolio). */
+/**
+ * Original campaign reports (served from /public/portfolio).
+ * The ?v= value is the first 8 chars of each file's SHA-256 - change it whenever a PDF is replaced
+ * so browsers/CDNs never serve a stale copy.
+ * d2c-campaign.pdf      = "D2C Campaign - updated.pdf"      (3 pages)
+ * lead-generation.pdf   = "Lead Genration - Updated'.pdf"   (4 pages)
+ */
 export const PDFS = {
-  d2c: "/portfolio/d2c-campaign.pdf",
-  lead: "/portfolio/lead-generation.pdf",
+  d2c: "/portfolio/d2c-campaign.pdf?v=2687f8d8",
+  lead: "/portfolio/lead-generation.pdf?v=c62bcfb0",
 };
 
 export const NAV = [

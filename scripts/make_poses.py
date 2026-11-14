@@ -49,18 +49,26 @@ for name in cfg["poses"]:
     c.save(os.path.join(OUT, f"mital-{name}.webp"), quality=88, alpha_quality=95, method=6)
     bbx = bb(c); rig["poses"][name] = {"src": f"/images/character/mital-{name}.webp", "fadeBottom": bool(cfg["poses"][name].get("cropped", False)), "bottom": bbx[3]}
 
-# base: hand layer + body-without-hand + full image (head source)
-hp = cfg["hand"]; poly = [[px - x0, py - y0] for px, py in hp["polygon"]]; pv = [hp["pivot"][0] - x0, hp["pivot"][1] - y0]
-arr = np.array(base_c).astype(np.float32); body = arr.copy(); hand = arr.copy()
-m = poly_mask((W, H), poly, hp["fade"], pv[1])
-erase = [[px, min(py, pv[1] - hp.get("keepWrist", 8))] for px, py in poly]
-body[..., 3] = arr[..., 3] * (1 - poly_mask((W, H), erase)); hand[..., 3] = arr[..., 3] * m
-ys, xs = np.where(hand[..., 3] > 2); hx0, hy0, hx1, hy1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
+# base: segmented raised arm (elbow -> wrist -> knuckles), full-canvas sprites so every layer shares one coordinate space
+A = cfg["arm"]; arr = np.array(base_c).astype(np.float32)
+ys_ = np.arange(H, dtype=np.float32)[:, None] * np.ones((1, W), np.float32)
+region = poly_mask((W, H), [[px, py] for px, py in A["boundary"]])
+def ramp_out(line, fade):  # 1 above the joint line, fading to 0 below it
+    return np.clip(1 - (ys_ - line) / fade, 0, 1)
+e, w_, k_ = A["elbow"], A["wrist"], A["knuckle"]
+a_fingers = region * (ys_ < k_["line"] + k_["fade"]) * ramp_out(k_["line"], k_["fade"])
+a_palm = region * (ys_ >= k_["line"]) * (ys_ < w_["line"] + w_["fade"]) * ramp_out(w_["line"], w_["fade"]) * 0 + region * (ys_ >= k_["line"]) * (ys_ < w_["line"]) + region * (ys_ >= w_["line"]) * (ys_ < w_["line"] + w_["fade"]) * ramp_out(w_["line"], w_["fade"])
+a_fore = region * (ys_ >= w_["line"]) * (ys_ < e["line"]) + region * (ys_ >= e["line"]) * (ys_ < e["line"] + e["fade"]) * ramp_out(e["line"], e["fade"])
+a_body = 1 - region * (ys_ < A.get("bodyErase", e["line"]))  # arm removed from the body only where background (not upper arm) lies behind it
+def sprite(a, name, **kw):
+    o = arr.copy(); o[..., 3] = arr[..., 3] * a
+    Image.fromarray(o.astype(np.uint8), "RGBA").save(os.path.join(OUT, name), quality=kw.get("q", 90), alpha_quality=96, method=6, **{})
+sprite(a_body, "mital-body.webp"); sprite(a_fore, "mital-forearm.webp"); sprite(a_palm, "mital-palm.webp"); sprite(a_fingers, "mital-fingers.webp")
 base_c.save(os.path.join(OUT, "mital.webp"), quality=90, alpha_quality=95, method=6)
-Image.fromarray(body.astype(np.uint8), "RGBA").save(os.path.join(OUT, "mital-body.webp"), quality=90, alpha_quality=95, method=6)
-Image.fromarray(hand.astype(np.uint8), "RGBA").crop((hx0, hy0, hx1, hy1)).save(os.path.join(OUT, "mital-hand.webp"), quality=92, alpha_quality=98, method=6)
+pc = lambda p_: [round(p_[0] / W * 100, 3), round(p_[1] / H * 100, 3)]
 rig.update({"src": "/images/character/mital.webp", "body": "/images/character/mital-body.webp",
-            "hand": {"src": "/images/character/mital-hand.webp", "x": int(hx0), "y": int(hy0), "w": int(hx1 - hx0), "h": int(hy1 - hy0), "pivot": [round(pv[0], 1), round(pv[1], 1)]}})
+            "arm": {"forearm": "/images/character/mital-forearm.webp", "palm": "/images/character/mital-palm.webp", "fingers": "/images/character/mital-fingers.webp",
+                    "elbow": pc(e["pivot"]), "wrist": pc(w_["pivot"]), "knuckle": pc(k_["pivot"])}})
 
 # eyes (colours sampled from the source render)
 src = Image.open(os.path.join(SRC, cfg["poses"][base]["file"])).convert("RGB"); eyes = {}

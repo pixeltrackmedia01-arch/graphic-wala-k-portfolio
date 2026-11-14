@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { preload } from "react-dom";
-import { AnimatePresence, animate, motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { AnimatePresence, animate, motion, useAnimationFrame, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { RIG } from "@/lib/characterRig";
 import { useCharacterMachine, type CharState } from "@/lib/useCharacterMachine";
 
@@ -67,7 +67,8 @@ export function Character() {
   const gx = useSpring(gxT, { stiffness: 120, damping: 22, mass: 0.6 });
   const gy = useSpring(gyT, { stiffness: 120, damping: 22, mass: 0.6 });
   const blink = useMotionValue(0), sleepy = useMotionValue(0), tilt = useMotionValue(0);
-  const handRot = useMotionValue(0);
+  const elbowRot = useMotionValue(0), wristRot = useMotionValue(0), fingerRot = useMotionValue(0);
+  const wave = useRef({ amp: 0.1, freq: 0.32, target: 0.1, targetFreq: 0.32, phase: 0, until: 0 });
   const baseOpacity = useMotionValue(1);
   const lid = useTransform([blink, sleepy], ([b, s]: number[]) => Math.max(b, s));
   const headRotate = useTransform([gx, tilt], ([g, t]: number[]) => g * 2.4 + t);
@@ -130,22 +131,30 @@ export function Character() {
     return () => { alive = false; clearTimeout(t); blink.set(0); };
   }, [reduce, blink, gxT, gyT]);
 
-  /* hand: big wave on greeting / welcome-back / click, otherwise a very small idle sway */
-  const wave = async (dur: number) => {
-    if (reduce || waving.current || poseRef.current !== "hello") return;
-    waving.current = true;
-    await animate(handRot, [0, -15, 11, -14, 10, -11, 7, 0], { duration: dur, ease: "easeInOut" });
-    waving.current = false;
+  /* arm: one oscillator drives elbow -> wrist -> fingers with growing phase lag (follow-through),
+     so the hand trails the forearm like a real wave. amp/freq ease toward their targets. */
+  const playWave = (seconds: number) => {
+    if (reduce || poseRef.current !== "hello") return;
+    const w = wave.current; w.target = 1; w.targetFreq = 1.45; w.until = performance.now() + seconds * 1000;
   };
+  useAnimationFrame((_, delta) => {
+    if (reduce) return;
+    const w = wave.current, dt = Math.min(delta, 50) / 1000, now = performance.now();
+    const calm = poseRef.current !== "hello" || stateRef.current === "sleeping" || stateRef.current === "idle";
+    if (w.until && now > w.until) { w.until = 0; w.target = 0.1; w.targetFreq = 0.32; }
+    const tAmp = calm ? 0 : w.target, tFreq = w.targetFreq;
+    w.amp += (tAmp - w.amp) * (1 - Math.pow(0.02, dt)); w.freq += (tFreq - w.freq) * (1 - Math.pow(0.05, dt));
+    if (w.amp < 0.002 && tAmp === 0) { elbowRot.set(0); wristRot.set(0); fingerRot.set(0); return; }
+    w.phase += dt * w.freq * Math.PI * 2;
+    const sw = (lag: number) => Math.sin(w.phase - lag) + 0.18 * Math.sin(2 * (w.phase - lag) + 0.7); // slightly asymmetric, less mechanical
+    elbowRot.set(w.amp * 4 * sw(0));
+    wristRot.set(w.amp * 9 * sw(0.85));
+    fingerRot.set(w.amp * 4 * sw(1.7));
+  });
   useEffect(() => {
-    if (state === "greeting") { const t = setTimeout(() => wave(2.6), 700); return () => clearTimeout(t); }
-    if (state === "welcome-back") { wave(1.7); }
+    if (state === "greeting") { const t = setTimeout(() => playWave(2.8), 700); return () => clearTimeout(t); }
+    if (state === "welcome-back") playWave(1.9);
   }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (reduce || pose !== "hello" || state === "sleeping" || state === "idle") { handRot.set(0); return; }
-    const a = animate(handRot, [0, 2.2, 0, -1.6, 0], { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 4 });
-    return () => a.stop();
-  }, [reduce, pose, state, handRot]);
 
   /* sleepiness + head tilt follow the state machine */
   useEffect(() => {
@@ -161,7 +170,7 @@ export function Character() {
   const bx = ((faceX + 120) / W) * 100, by = ((faceY - 190) / H) * 100;
 
   return (
-    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onClick={() => wave(1.7)}>
+    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onClick={() => playWave(2.0)}>
       <motion.div className="absolute inset-0" animate={hop} initial={reduce ? false : { y: 20 }}>
         <motion.div className="absolute inset-0" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }}>
           {/* base pose (rigged): body without hand, hand at the wrist pivot, head with eyes */}
@@ -169,13 +178,22 @@ export function Character() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={RIG.body} width={W} height={H} alt="Illustrated 3D character of Mital Chikhaliya, waving hello" fetchPriority="high" decoding="async" draggable={false}
               className="absolute inset-0 h-full w-full select-none" style={{ WebkitMaskImage: BODY_MASK, maskImage: BODY_MASK }} />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <motion.img src={RIG.hand.src} alt="" aria-hidden decoding="async" draggable={false} className="pointer-events-none absolute select-none"
-              style={{ rotate: handRot, left: `${(RIG.hand.x / W) * 100}%`, top: `${(RIG.hand.y / H) * 100}%`, width: `${(RIG.hand.w / W) * 100}%`, height: `${(RIG.hand.h / H) * 100}%`,
-                originX: (RIG.hand.pivot[0] - RIG.hand.x) / RIG.hand.w, originY: (RIG.hand.pivot[1] - RIG.hand.y) / RIG.hand.h }} />
+            {/* segmented arm: forearm swings at the elbow; palm trails at the wrist; fingers trail at the knuckles */}
+            <motion.div className="pointer-events-none absolute inset-0" style={{ rotate: elbowRot, originX: `${RIG.arm.elbow[0]}%`, originY: `${RIG.arm.elbow[1]}%` }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={RIG.arm.forearm} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
+              <motion.div className="absolute inset-0" style={{ rotate: wristRot, originX: `${RIG.arm.wrist[0]}%`, originY: `${RIG.arm.wrist[1]}%` }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={RIG.arm.palm} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
+                <motion.div className="absolute inset-0" style={{ rotate: fingerRot, originX: `${RIG.arm.knuckle[0]}%`, originY: `${RIG.arm.knuckle[1]}%` }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={RIG.arm.fingers} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
+                </motion.div>
+              </motion.div>
+            </motion.div>
             <motion.div className="absolute inset-0" style={{ x: headX, y: headY, rotate: headRotate, originX: RIG.pivot[0] / W, originY: RIG.pivot[1] / H, WebkitMaskImage: HEAD_MASK, maskImage: HEAD_MASK }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={RIG.src} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
+              <img src={RIG.body} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
               <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
                 <Eye k="a" id={id} gx={gx} gy={gy} lid={lid} />
                 <Eye k="b" id={id} gx={gx} gy={gy} lid={lid} />
