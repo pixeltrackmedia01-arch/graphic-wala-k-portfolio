@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f4ecdf;
+  --color-paper: #fbf8f2;
+  --color-sand: #e8dccb;
+  --color-clay: #d8c7b0;
+  --color-ink: #26221f;
+  --color-ink-soft: #5b524a;
+  --color-brown: #7a5c47;
+  --color-terra: #c2603a;
+  --color-terra-deep: #a64d2b;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+section[id] { scroll-margin-top: 4rem; }
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+::selection { background: var(--color-terra); color: #fff; }
+
+.font-display { font-family: var(--font-display); font-optical-sizing: auto; }
+.eyebrow { font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; color: var(--color-terra-deep); }
+.wrap { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1.25rem; }
+@media (min-width: 768px) { .wrap { padding-inline: 2.5rem; } }
+
+.grain::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .3  0 0 0 0 .2  0 0 0 .08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@keyframes drift-a { 0%,100% { transform: translate3d(0,0,0) } 50% { transform: translate3d(40px,30px,0) } }
+@keyframes drift-b { 0%,100% { transform: translate3d(0,0,0) } 50% { transform: translate3d(-35px,-25px,0) } }
+@keyframes scroll-cue { 0% { transform: translateY(-100%) } 60%,100% { transform: translateY(100%) } }
+@media (prefers-reduced-motion: reduce) {
+  .drift-a, .drift-b, .cue-dot { animation: none !important; }
+}
+.drift-a { animation: drift-a 18s ease-in-out infinite; }
+.drift-b { animation: drift-b 22s ease-in-out infinite; }
+.cue-dot { animation: scroll-cue 2s ease-in-out infinite; }
+
+:focus-visible { outline: 2px solid var(--color-terra); outline-offset: 3px; border-radius: 4px; }
+
+@keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: .45 } 30% { transform: translateY(-4px); opacity: 1 } }
+.typing-dot { animation: typing 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .typing-dot { animation: none; opacity: .7; } }
+
+@keyframes wave { 0%,100% { transform: rotate(0) } 15% { transform: rotate(18deg) } 30% { transform: rotate(-10deg) } 45% { transform: rotate(16deg) } 60% { transform: rotate(-6deg) } 75% { transform: rotate(10deg) } }
+.wave-hand { animation: wave 1.6s ease-in-out 0.9s 2; }
+@keyframes zzz { 0% { transform: translate(0,0) scale(.8); opacity: 0 } 25% { opacity: 1 } 100% { transform: translate(18px,-34px) scale(1.15); opacity: 0 } }
+.zzz { animation: zzz 2.7s ease-in-out infinite; opacity: 0; }

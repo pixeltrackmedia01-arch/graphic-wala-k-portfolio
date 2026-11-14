@@ -1,0 +1,8 @@
+{
+  "_comment": "All coordinates are in SOURCE-image pixels (scripts/source/mital-character-new.webp). Re-measure when the character image changes, then run: python3 scripts/make_character.py <source-image>",
+  "neck": { "cutTop": 400, "cutBottom": 430, "pivotX": 362, "pivotY": 396 },
+  "eyes": {
+    "a": { "iris": [328.3, 298.0, 7.0], "open": [328.2, 298.6, 11.8, 6.9, 0], "lidSample": [328, 289], "cheekSample": [328, 309], "scleraSample": [320, 300] },
+    "b": { "iris": [377.6, 296.6, 7.0], "open": [381.0, 295.6, 13.0, 6.8, 0], "lidSample": [378, 286], "cheekSample": [378, 306], "scleraSample": [390, 297] }
+  }
+}
