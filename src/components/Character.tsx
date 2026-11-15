@@ -28,7 +28,7 @@ const HINT_KEY = "mc_desktop_hint_seen";
 const HINT_TEXT = "For the Full Experience, Go Desktop!";
 const [HEAD_MASK, BODY_MASK] = maskTop(RIG.cutTop, RIG.cutBottom);
 
-const MSG = { greeting: "Hi there!", welcomeBack: "Welcome back! 👋", sleeping: "Taking a tiny break… 😴" } as const;
+const MSG = { welcomeBack: "Welcome back! 👋" } as const;
 
 type EyeKey = "a" | "b";
 
@@ -65,7 +65,7 @@ function Eye({ k, id, e, src, gx, gy, lid }: { k: EyeKey; id: string; e: EyeRig;
 
 export function Character() {
   const reduce = !!useReducedMotion();
-  const { state, sleepBubble, welcomeBubble, wake, salute } = useCharacterMachine();
+  const { state, greetBubble, greetText, welcomeBubble, salute } = useCharacterMachine();
   const id = useId().replace(/:/g, "");
   const root = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<PoseName | null>(null);
@@ -191,7 +191,7 @@ export function Character() {
   });
   useEffect(() => {
     // two friendly waves per wave phase (greeting / welcome back), spread across the ~10 s
-    const plan = state === "greeting" ? [[700, 2.8], [5400, 2.8]] : state === "welcome-back" ? [[150, 2.4], [5200, 2.4]] : [];
+    const plan = state === "greeting" ? [[700, 2.8], [5400, 2.8]] : state === "welcome-back" ? [[150, 2.2], [2700, 2.0]] : [];
     const ts = plan.map(([at, dur]) => setTimeout(() => playWave(dur), at));
     return () => ts.forEach(clearTimeout);
   }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -206,12 +206,12 @@ export function Character() {
   }, [state, reduce, sleepy, tilt]);
 
   // one message at a time, tied to the state that owns it
-  const bubble = state === "greeting" ? MSG.greeting : state === "welcome-back" && welcomeBubble ? MSG.welcomeBack : state === "sleeping" && sleepBubble ? MSG.sleeping : undefined;
+  const bubble = state === "greeting" && greetBubble ? greetText : state === "welcome-back" && welcomeBubble ? MSG.welcomeBack : undefined;   // asleep: no message, only the Zzz
   const hop = reduce ? undefined : state === "waking" ? { y: [0, -9, 0], transition: { duration: 0.8, ease: "easeOut" as const } } : { y: 0 };
   const bx = ((faceX + 120) / W) * 100, by = ((faceY - 190) / H) * 100;
 
   return (
-    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onPointerEnter={(e) => { if (e.pointerType !== "touch") { wake(); salute(); } }} onPointerMove={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerDown={() => wake()}>
+    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onPointerEnter={(e) => { if (e.pointerType !== "touch") salute(); }}>
       <motion.div className="absolute inset-0" animate={hop} initial={reduce ? false : { y: 20 }}>
         <motion.div className="absolute inset-0" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }}>
           {/* base pose (rigged): body without hand, hand at the wrist pivot, head with eyes */}
