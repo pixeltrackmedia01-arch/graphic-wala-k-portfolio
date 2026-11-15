@@ -17,6 +17,7 @@ const WAKE_MS = 900;            // eyes open while she turns to wave
 const WELCOME_BACK_MS = 10_000; // wave pose, then back to crossed arms
 const WELCOME_BUBBLE_MS = 4_500;
 const SLEEP_BUBBLE_MS = 9_000;
+const SALUTE_COOLDOWN_MS = 1_200; // after returning to crossed arms, hovering her waves again once this has passed
 
 export function useCharacterMachine() {
   const [state, setState] = useState<CharState>("greeting");
@@ -24,6 +25,7 @@ export function useCharacterMachine() {
   const [welcomeBubble, setWelcomeBubble] = useState(false);
   const stateRef = useRef<CharState>("greeting");
   const last = useRef(0);
+  const activeSince = useRef(Date.now());
   const timers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
 
   const clear = (k: string) => { const t = timers.current[k]; if (t) clearTimeout(t); timers.current[k] = undefined; };
@@ -51,7 +53,8 @@ export function useCharacterMachine() {
 
   const becomeActive = useCallback(() => {
     go("active");
-    last.current = Date.now();   // a full inactivity period starts now, so she can't fall straight back asleep
+    last.current = Date.now();
+    activeSince.current = Date.now();   // a full inactivity period starts now, so she can't fall straight back asleep
     armIdle();
   }, [armIdle, go]);
 
@@ -76,6 +79,15 @@ export function useCharacterMachine() {
     }, WAKE_MS);
   }, [becomeActive, go]);
 
+  /** Cursor enters her while she is simply standing: she greets again (same wave + "Hi there!"). Cool-down avoids re-triggering. */
+  const salute = useCallback(() => {
+    if (stateRef.current !== "active") return;
+    if (Date.now() - activeSince.current < SALUTE_COOLDOWN_MS) return;
+    last.current = Date.now();
+    go("greeting");
+    later("greet", () => becomeActive(), GREETING_MS);
+  }, [becomeActive, go]);
+
   useEffect(() => {
     last.current = Date.now();
     later("greet", () => becomeActive(), GREETING_MS);
@@ -92,5 +104,5 @@ export function useCharacterMachine() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { state, sleepBubble, welcomeBubble, wake };
+  return { state, sleepBubble, welcomeBubble, wake, salute };
 }

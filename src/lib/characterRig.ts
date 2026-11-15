@@ -64,6 +64,11 @@ export const RIG = {
           }
         }
       }
+    },
+    "sleep": {
+      "src": "/images/character/mital-sleep.webp",
+      "fadeBottom": false,
+      "bottom": 1773
     }
   },
   "src": "/images/character/mital.webp",

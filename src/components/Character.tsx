@@ -65,7 +65,7 @@ function Eye({ k, id, e, src, gx, gy, lid }: { k: EyeKey; id: string; e: EyeRig;
 
 export function Character() {
   const reduce = !!useReducedMotion();
-  const { state, sleepBubble, welcomeBubble, wake } = useCharacterMachine();
+  const { state, sleepBubble, welcomeBubble, wake, salute } = useCharacterMachine();
   const id = useId().replace(/:/g, "");
   const root = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<PoseName | null>(null);
@@ -198,7 +198,7 @@ export function Character() {
 
   /* sleepiness + head tilt follow the state machine */
   useEffect(() => {
-    const target = state === "sleeping" ? { s: 1, t: 4.2, d: 2.2 } : state === "idle" ? { s: 0.72, t: 1.8, d: 3 } : { s: 0, t: 0, d: 0.7 };
+    const target = state === "sleeping" ? { s: 1, t: HAS_SLEEP ? 0 : 4.2, d: 2.2 } : state === "idle" ? { s: 0.72, t: HAS_SLEEP ? 0 : 1.8, d: 3 } : { s: 0, t: 0, d: 0.7 };
     if (reduce) { sleepy.set(target.s); tilt.set(target.t); return; }
     const a = animate(sleepy, target.s, { duration: target.d, ease: "easeInOut" });
     const b = animate(tilt, target.t, { duration: target.d + 0.4, ease: "easeInOut" });
@@ -211,7 +211,7 @@ export function Character() {
   const bx = ((faceX + 120) / W) * 100, by = ((faceY - 190) / H) * 100;
 
   return (
-    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onPointerEnter={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerMove={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerDown={() => wake()}>
+    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onPointerEnter={(e) => { if (e.pointerType !== "touch") { wake(); salute(); } }} onPointerMove={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerDown={() => wake()}>
       <motion.div className="absolute inset-0" animate={hop} initial={reduce ? false : { y: 20 }}>
         <motion.div className="absolute inset-0" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }}>
           {/* base pose (rigged): body without hand, hand at the wrist pivot, head with eyes */}
@@ -246,7 +246,7 @@ export function Character() {
           {POSES.map((n) => {
             const p = POSE_RIGS[n];
             const fade = p.fadeBottom ? `linear-gradient(to bottom, #000 ${((p.bottom - 60) / H) * 100}%, transparent ${(p.bottom / H) * 100}%)` : undefined;
-            const t = { duration: reduce ? 0 : 0.7, ease: "easeInOut" as const };
+            const t = { duration: reduce ? 0 : n === "sleep" && pose === "sleep" ? 1.6 : 0.8, ease: "easeInOut" as const };
             if (p.head) {
               const [hm, bm] = maskTop(p.head.cutTop, p.head.cutBottom);
               return (
