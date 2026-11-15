@@ -23,7 +23,7 @@ export function Contact() {
   return (
     <section id="contact" className="grain relative isolate overflow-hidden bg-ink text-cream" aria-labelledby="contact-title">
       <div aria-hidden className="absolute -left-24 bottom-0 -z-10 h-96 w-96 rounded-full bg-terra/25 blur-3xl" />
-      <div className="wrap py-24 md:py-36">
+      <div className="wrap py-16 md:py-24">
         <Reveal><p className="eyebrow mb-6 !text-terra">Contact</p></Reveal>
         <SplitHeading text="Let's Create Something That Grows." className="font-display max-w-4xl text-[clamp(2.4rem,7vw,6rem)] font-medium leading-[1] tracking-tight" />
         <span id="contact-title" className="sr-only">Let&apos;s Create Something That Grows.</span>

@@ -22,7 +22,7 @@ export function Reveal({
 export function SplitHeading({ text, className, as: Tag = "h2" }: { text: string; className?: string; as?: "h1" | "h2" | "h3" }) {
   const words = text.split(" ");
   return (
-    <Tag className={className} aria-label={text}>
+    <Tag className={`text-balance ${className ?? ""}`} aria-label={text}>
       {words.map((w, i) => (
         <span key={i} aria-hidden className="inline-block overflow-hidden align-bottom pb-[0.12em] -mb-[0.12em]">
           <motion.span

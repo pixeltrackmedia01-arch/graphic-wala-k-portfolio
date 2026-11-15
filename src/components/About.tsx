@@ -22,13 +22,13 @@ export function About() {
   const extras = Object.values(PERSONAL_EDITABLE).filter(Boolean);
 
   return (
-    <section id="about" className="py-24 md:py-36" aria-labelledby="about-title">
+    <section id="about" className="py-16 md:py-24" aria-labelledby="about-title">
       <div className="wrap">
         <Reveal><p className="eyebrow mb-5">About me</p></Reveal>
         <SplitHeading text="Behind Every Campaign, There's a Strategy." className="font-display max-w-3xl text-[clamp(2rem,5vw,4.2rem)] font-medium leading-[1.05] tracking-tight" />
         <span id="about-title" className="sr-only">Behind Every Campaign, There&apos;s a Strategy.</span>
 
-        <div role="tablist" aria-label="About Mital" className="mt-12 inline-flex rounded-full border border-clay bg-paper p-1">
+        <div role="tablist" aria-label="About Mital" className="mt-8 inline-flex rounded-full border border-clay bg-paper p-1">
           {TABS.map((t, i) => (
             <button key={t.id} ref={(el) => { refs.current[i] = el; }} role="tab" id={`${base}-t-${t.id}`} aria-selected={tab === t.id} aria-controls={`${base}-p-${t.id}`} tabIndex={tab === t.id ? 0 : -1}
               onClick={() => setTab(t.id)} onKeyDown={(e) => onKey(e, i)}

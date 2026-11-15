@@ -51,11 +51,11 @@ export const NAV = [
 ];
 
 export const FUNNEL = [
-  { key: "Attention", text: "Attracting the right audience through targeted advertising and creative strategy." },
-  { key: "Click", text: "Turning attention into meaningful clicks through relevant messaging and offers." },
-  { key: "Lead", text: "Capturing potential customers through lead forms, landing pages and conversion-focused campaigns." },
-  { key: "Conversion", text: "Improving lead quality through retargeting, audience segmentation and conversion optimization." },
-  { key: "Revenue", text: "Turning qualified opportunities into measurable business results." },
+  { key: "Capture Attention", text: "Reaching the right audience with powerful creatives, smart targeting and scroll-stopping campaigns." },
+  { key: "Drive Engagement", text: "Turning audience interest into meaningful clicks through compelling messaging and strategic ad placements." },
+  { key: "Generate Leads", text: "Attracting potential customers through high-converting landing pages, lead forms and focused campaigns." },
+  { key: "Optimize Conversions", text: "Turning prospects into customers through retargeting, audience insights and continuous campaign optimization." },
+  { key: "Maximize Revenue", text: "Transforming marketing performance into measurable business growth, stronger ROI and sustainable results." },
 ];
 
 export const FOCUS_AREAS = [

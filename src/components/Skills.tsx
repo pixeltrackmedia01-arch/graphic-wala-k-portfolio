@@ -38,13 +38,13 @@ export function Skills() {
   ][kind];
 
   return (
-    <section id="skills" className="py-24 md:py-36" aria-labelledby="skills-title">
+    <section id="skills" className="py-16 md:py-24" aria-labelledby="skills-title">
       <div className="wrap">
         <Reveal><p className="eyebrow mb-5">Skills & marketing toolkit</p></Reveal>
         <SplitHeading text="The Tools Behind My Marketing Strategy." className="font-display max-w-3xl text-[clamp(2rem,5vw,4.2rem)] font-medium leading-[1.05] tracking-tight" />
         <span id="skills-title" className="sr-only">The Tools Behind My Marketing Strategy.</span>
 
-        <div className="mt-14 grid gap-10 lg:mt-20 lg:grid-cols-12 lg:gap-14">
+        <div className="mt-10 grid gap-10 lg:mt-14 lg:grid-cols-12 lg:gap-14">
           <div role="tablist" aria-label="Skill groups" aria-orientation="vertical" className="flex gap-2 overflow-x-auto pb-2 lg:col-span-4 lg:flex-col lg:overflow-visible lg:pb-0">
             {SKILL_GROUPS.map((s, i) => (
               <button key={s.no} role="tab" id={`sk-t-${i}`} aria-selected={active === i} aria-controls="sk-panel" onClick={() => { setActive(i); setHover(null); }}

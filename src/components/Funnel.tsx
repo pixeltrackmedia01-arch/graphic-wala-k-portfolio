@@ -79,9 +79,11 @@ function draw(ctx: CanvasRenderingContext2D, g: Geo, dots: Dot[], s: number, int
     ctx.beginPath(); ctx.moveTo(g.narrow ? 0 : 4, y + H * 0.055); ctx.lineTo(W, y + H * 0.055); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = on ? "#a64d2b" : "rgba(91,82,74,0.6)";
-    ctx.font = `700 ${g.narrow ? 11 : 11}px ${font}`;
     ctx.textAlign = "left";
     const label = g.narrow ? `0${i + 1}` : `0${i + 1}  ${f.key.toUpperCase()}`;
+    let fs = 11;                                   // shrink long stage names so they stay inside the left gutter
+    ctx.font = `700 ${fs}px ${font}`;
+    while (!g.narrow && fs > 8 && ctx.measureText(label).width > g.L - 12) { fs -= 0.5; ctx.font = `700 ${fs}px ${font}`; }
     ctx.fillText(label, 4, y - H * 0.03);
   });
 
@@ -224,7 +226,7 @@ export function Funnel() {
       canvas.style.width = `${r.width}px`; canvas.style.height = `${r.height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const narrow = r.width < 460;
-      const L = narrow ? 30 : Math.min(150, r.width * 0.2);
+      const L = narrow ? 30 : Math.min(170, r.width * 0.25);
       geo = { W: r.width, H: r.height, L, cx: L + (r.width - L) / 2, hw0: ((r.width - L) / 2) * 0.94, narrow };
     };
     const ro = new ResizeObserver(() => { resize(); }); ro.observe(host); resize();
@@ -260,7 +262,7 @@ export function Funnel() {
   }, [reduce, scrollYProgress]);
 
   return (
-    <section id="growth" className="relative bg-paper pt-24 md:pt-36" aria-labelledby="growth-title">
+    <section id="growth" className="relative bg-paper pt-16 md:pt-24" aria-labelledby="growth-title">
       <div className="wrap">
         <Reveal><p className="eyebrow mb-5">The marketing growth system</p></Reveal>
         <SplitHeading text="Growth Doesn't Happen by Accident. It's Built Step by Step." className="font-display max-w-4xl text-[clamp(2rem,5vw,4.2rem)] font-medium leading-[1.05] tracking-tight" />
@@ -275,7 +277,7 @@ export function Funnel() {
             <div className="flex min-h-0 flex-col lg:col-span-7 lg:order-2 lg:h-full">
               <div className="relative min-h-0 flex-1">
                 <canvas ref={canvasRef} role="img" className="absolute inset-0"
-                  aria-label="Illustrative animation: about one hundred audience icons enter a funnel and are filtered through click, lead, conversion and revenue stages, ending in a rising revenue line." />
+                  aria-label="Illustrative animation: about one hundred audience icons enter a funnel and are filtered through the stages Capture Attention, Drive Engagement, Generate Leads, Optimize Conversions and Maximize Revenue, ending in a rising revenue line." />
               </div>
               <p className="mt-2 text-center text-[0.7rem] italic leading-snug text-ink-soft">
                 Illustrative marketing journey — audience numbers and filtering ratios are for animation only and are not actual client results.

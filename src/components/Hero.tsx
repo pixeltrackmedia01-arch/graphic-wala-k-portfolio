@@ -23,7 +23,7 @@ export function Hero() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const imgY = useTransform(scrollYProgress, [0, 1], [0, 50]);
   const bgY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const line = "Turning Marketing Data Into Measurable Growth.".split(" ");
+  const line = "Behind Every Click, There's a Strategy.".split(" ");
   const ar = RIG.w / RIG.h;
   const px = useMotionValue(0), py = useMotionValue(0);
   const sx = useSpring(px, { stiffness: 50, damping: 20 }), sy = useSpring(py, { stiffness: 50, damping: 20 });
@@ -47,14 +47,14 @@ export function Hero() {
         {/* left: introduction */}
         <div className="order-2 lg:order-1">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }} className="eyebrow mb-5 flex items-center gap-3">
-            <span className="h-px w-8 bg-terra" /> {PROFILE.title}
+            <span className="h-px w-8 bg-terra" /> I&apos;m Mital.
           </motion.p>
 
-          <h1 id="hero-title" aria-label="Turning Marketing Data Into Measurable Growth."
+          <h1 id="hero-title" aria-label="Behind Every Click, There's a Strategy."
             className="font-display max-w-[15ch] text-[clamp(2.15rem,4.3vw,4.1rem)] font-medium leading-[1.05] tracking-[-0.015em] sm:max-w-[17ch] lg:max-w-[14ch] xl:max-w-[16ch]">
             {line.map((w, i) => (
               <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.1em] align-bottom">
-                <motion.span className={`inline-block ${w.startsWith("Measurable") || w.startsWith("Growth") ? "italic text-terra" : ""}`}
+                <motion.span className={`inline-block ${w.startsWith("Strategy") ? "italic text-terra" : ""}`}
                   initial={{ y: "105%" }} animate={{ y: 0 }} transition={{ duration: 0.9, delay: 0.12 + i * 0.06, ease }}>
                   {w}&nbsp;
                 </motion.span>
@@ -63,14 +63,14 @@ export function Hero() {
           </h1>
 
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6, ease }}
-            className="mt-6 max-w-[34rem] text-[0.98rem] leading-[1.7] text-ink-soft md:text-[1.05rem]">
-            I&apos;m {PROFILE.name}, a Performance Marketing professional focused on building scalable advertising strategies, improving campaign performance and driving profitable business growth.
+            className="mt-5 max-w-[34rem] text-pretty text-[0.98rem] leading-[1.7] text-ink-soft md:text-[1.05rem]">
+            I build and optimize performance-driven campaigns that connect the right audience with the right brand and turn clicks into conversions.
           </motion.p>
 
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.75, ease }} className="mt-8 flex flex-wrap gap-3">
             <Magnetic><a href="#work" onClick={go("work")}
               className="group inline-flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-sm font-medium text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-terra hover:shadow-lg hover:shadow-terra/25 focus-visible:outline-offset-4 active:translate-y-0">
-              Explore My Work
+              Ready to See Results?
               <ArrowDownRight size={17} className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5" />
             </a></Magnetic>
             <Magnetic><a href="#contact" onClick={go("contact")}

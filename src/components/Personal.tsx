@@ -12,7 +12,7 @@ export function Personal() {
   const extras = Object.values(PERSONAL_EDITABLE).filter(Boolean);
 
   return (
-    <section id="personal" className="py-24 md:py-36" aria-labelledby="personal-title">
+    <section id="personal" className="py-16 md:py-24" aria-labelledby="personal-title">
       <div className="wrap">
         <div className="grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-16">
           <div className="lg:col-span-7">
@@ -25,7 +25,7 @@ export function Personal() {
           </Reveal>
         </div>
 
-        <ul className="mt-14 grid gap-5 border-t border-clay pt-10 md:grid-cols-3 md:gap-8">
+        <ul className="mt-10 grid gap-5 border-t border-clay pt-10 md:grid-cols-3 md:gap-8">
           {ITEMS.map(({ Icon, title, text }, i) => (
             <Reveal as="li" key={title} delay={i * 0.08} className="flex gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-sand text-terra-deep"><Icon size={20} /></span>

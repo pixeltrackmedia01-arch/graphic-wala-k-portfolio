@@ -12,13 +12,13 @@ export function Process() {
   useMotionValueEvent(scrollYProgress, "change", (p) => setActive(Math.min(PROCESS.length - 1, Math.floor(p * PROCESS.length * 1.02) - (p < 0.02 ? 1 : 0))));
 
   return (
-    <section id="process" className="bg-sand/60 py-24 md:py-36" aria-labelledby="process-title">
+    <section id="process" className="bg-sand/60 py-16 md:py-24" aria-labelledby="process-title">
       <div className="wrap">
         <Reveal><p className="eyebrow mb-5">My working process</p></Reveal>
         <SplitHeading text="From Strategy to Scalable Growth." className="font-display max-w-3xl text-[clamp(2rem,5vw,4.2rem)] font-medium leading-[1.05] tracking-tight" />
         <span id="process-title" className="sr-only">From Strategy to Scalable Growth.</span>
 
-        <ol ref={ref} className="relative mt-16 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-24 lg:grid-cols-6 lg:gap-y-0">
+        <ol ref={ref} className="relative mt-10 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:mt-14 lg:grid-cols-6 lg:gap-y-0">
           {/* desktop horizontal line */}
           <span aria-hidden className="absolute left-[8.33%] right-[8.33%] top-6 hidden h-px bg-clay lg:block" />
           <motion.span aria-hidden style={{ scaleX: prog, transformOrigin: "left" }} className="absolute left-[8.33%] right-[8.33%] top-[1.45rem] hidden h-0.5 bg-terra lg:block" />

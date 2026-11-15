@@ -12,13 +12,13 @@ export function Journey() {
   const prog = useSpring(scrollYProgress, { stiffness: 110, damping: 28, mass: 0.4 });
 
   return (
-    <section id="experience" className="bg-paper py-24 md:py-36" aria-labelledby="exp-title">
+    <section id="experience" className="bg-paper py-16 md:py-24" aria-labelledby="exp-title">
       <div className="wrap">
         <Reveal><p className="eyebrow mb-5">Career journey</p></Reveal>
         <SplitHeading text="The Journey Behind the Performance." className="font-display max-w-3xl text-[clamp(2rem,5vw,4.2rem)] font-medium leading-[1.05] tracking-tight" />
         <span id="exp-title" className="sr-only">The Journey Behind the Performance.</span>
 
-        <ol ref={ref} className="relative mt-16 space-y-8 pl-9 sm:pl-16 lg:mt-24">
+        <ol ref={ref} className="relative mt-10 space-y-8 pl-9 sm:pl-16 lg:mt-14">
           <span aria-hidden className="absolute bottom-2 left-[0.7rem] top-2 w-px bg-clay sm:left-[1.4rem]" />
           <motion.span aria-hidden style={{ scaleY: prog, transformOrigin: "top" }} className="absolute bottom-2 left-[0.7rem] top-2 w-0.5 -translate-x-[0.5px] bg-terra sm:left-[1.4rem]" />
           {JOBS.map((j, i) => {
