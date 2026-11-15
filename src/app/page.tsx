@@ -9,7 +9,6 @@ import { Skills } from "@/components/Skills";
 import { Process } from "@/components/Process";
 import { Personal } from "@/components/Personal";
 import { Contact } from "@/components/Contact";
-import { ChatLoader } from "@/components/ChatLoader";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 
 export default function Page() {
@@ -29,7 +28,6 @@ export default function Page() {
         <Personal />
         <Contact />
       </main>
-      <ChatLoader />
       <FloatingAssistant />
     </>
   );

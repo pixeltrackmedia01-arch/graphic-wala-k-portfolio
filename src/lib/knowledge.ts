@@ -1,7 +1,7 @@
 /**
  * Structured knowledge base for the resume assistant.
  * SOURCE: Mital's resume + approved portfolio content only. Do not add anything unverified here.
- * The assistant is instructed to answer ONLY from this text.
+
  */
 export const KNOWLEDGE = {
   profile: {

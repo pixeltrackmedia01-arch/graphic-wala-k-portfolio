@@ -25,14 +25,5 @@ python3 scripts/make_character.py scripts/source/mital-pose-stand.webp scripts/s
 ```
 Outputs `public/images/character/mital.png` (master transparent PNG), `mital.webp` (what the site loads) and `src/lib/characterRig.ts`.
 
-## AI resume assistant + contact (server-side)
-Copy `.env.example` to `.env.local` (or set the variables in Vercel → Settings → Environment Variables):
-
-| Variable | Needed for |
-|---|---|
-| `ANTHROPIC_API_KEY` | AI answers (`/api/chat`). Without it the widget says the AI isn't connected. |
-| `ANTHROPIC_MODEL` | optional, default `claude-haiku-5-5` |
-| `RESEND_API_KEY` | sending the contact form as email (`/api/contact`) |
-| `CONTACT_TO_EMAIL` / `CONTACT_FROM_EMAIL` | optional recipient / verified sender |
-
-Keys are read only on the server and never reach browser JavaScript.
+## Floating assistant
+A small floating avatar (bottom-right) appears after the Hero is scrolled past; tapping her shows the published phone number as a `tel:` link. The earlier AI chat widget and its API routes were removed, so no environment variables are needed.
