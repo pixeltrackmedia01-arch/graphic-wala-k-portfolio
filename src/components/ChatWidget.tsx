@@ -3,6 +3,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ExternalLink, Mail, MessageCircle, Phone, RotateCcw, Send, X } from "lucide-react";
 import { KNOWLEDGE, QUICK_ANSWERS, SUGGESTIONS } from "@/lib/knowledge";
+import { answerLocally } from "@/lib/localAnswer";
 
 type Msg = { id: number; role: "user" | "assistant"; content: string; note?: string };
 type Mode = "chat" | "contact";
@@ -55,9 +56,8 @@ export function ChatWidget() {
       if (res.ok && data.reply) push({ role: "assistant", content: data.reply });
       else if (data.error === "not_configured") {
         const quick = QUICK_ANSWERS[q];
-        push(quick
-          ? { role: "assistant", content: quick, note: "Quick answer from Mital's resume — the live AI assistant isn't connected yet." }
-          : { role: "assistant", content: "The AI assistant isn't connected yet, so I can't answer free-form questions right now. Please pick one of the suggested questions, or use “Contact Mital” to reach her directly.", note: "AI service not configured" });
+        const local = quick ? { text: quick, matched: true } : answerLocally(q);
+        push({ role: "assistant", content: local.text, ...(local.matched ? { note: "Answered from Mital's resume and portfolio content." } : {}) });
       } else if (data.error === "rate_limited") push({ role: "assistant", content: "You're sending questions a little fast — please wait a moment and try again.", note: "Rate limited" });
       else if (data.error === "timeout") push({ role: "assistant", content: "That took too long to answer. Please try again.", note: "Timed out" });
       else push({ role: "assistant", content: "Sorry, I couldn't get an answer just now. Please try again, or use “Contact Mital”.", note: "Service error" });
