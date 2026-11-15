@@ -8,13 +8,13 @@ import { useCharacterMachine, type CharState } from "@/lib/useCharacterMachine";
 const clamp = (x: number, a = -1, b = 1) => Math.min(b, Math.max(a, x));
 const { w: W, h: H } = RIG;
 const [faceX, faceY] = RIG.face;
-export type PoseName = "hello" | "think" | "point" | "stand";
+export type PoseName = "hello" | "think" | "cross" | "sleep";
 type PoseRig = { src: string; fadeBottom: boolean; bottom: number; head?: HeadRig };
 type EyeRig = { iris: { cx: number; cy: number; r: number }; open: { cx: number; cy: number; rx: number; ry: number; rot: number }; lidTop: string; lidBottom: string; lash: string; scleraTop: string; scleraBottom: string };
 type HeadRig = { cutTop: number; cutBottom: number; pivot: readonly number[]; face: readonly number[]; eyes: { a: EyeRig; b: EyeRig } };
 const POSE_RIGS = RIG.poses as unknown as Record<string, PoseRig>;
 const POSES = Object.keys(POSE_RIGS);
-const HAS_STAND = "stand" in POSE_RIGS;
+const HAS_SLEEP = "sleep" in POSE_RIGS;   // optional dedicated sleeping render; otherwise sleep = crossed-arm pose + closed lids + head tilt (rig)
 const maskTop = (cutTop: number, cutBottom: number) => [
   `linear-gradient(to bottom, #000 ${(cutTop / H) * 100}%, transparent ${(cutBottom / H) * 100}%)`,   // head: above the neck
   `linear-gradient(to bottom, transparent ${(cutTop / H) * 100 - 0.15}%, #000 ${(cutTop / H) * 100}%)`, // body: below it
@@ -28,10 +28,7 @@ const HINT_KEY = "mc_desktop_hint_seen";
 const HINT_TEXT = "For the Full Experience, Go Desktop!";
 const [HEAD_MASK, BODY_MASK] = maskTop(RIG.cutTop, RIG.cutBottom);
 
-const BUBBLES: Partial<Record<CharState, { a: string; b?: string; wave?: boolean }>> = {
-  greeting: { a: "Hi there!", b: "Welcome to my portfolio.", wave: true },
-  "welcome-back": { a: "Welcome back! 😊" },
-};
+const MSG = { greeting: "Hi there!", welcomeBack: "Welcome back! 👋", sleeping: "Taking a tiny break… 😴" } as const;
 
 type EyeKey = "a" | "b";
 
@@ -68,16 +65,16 @@ function Eye({ k, id, e, src, gx, gy, lid }: { k: EyeKey; id: string; e: EyeRig;
 
 export function Character() {
   const reduce = !!useReducedMotion();
-  const { state, sleepBubble } = useCharacterMachine();
+  const { state, sleepBubble, welcomeBubble, wake } = useCharacterMachine();
   const id = useId().replace(/:/g, "");
   const root = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<PoseName | null>(null);
-  const [settled, setSettled] = useState(false);          // flips once, 10 s after the hero loads
   const phone = usePhone();
   const phoneRef = useRef(phone); phoneRef.current = phone;
-  // desktop + tablet: wave -> pointing. phones: wave -> relaxed standing (or stay on the wave pose until that image exists). Never "point" on phones.
-  const rest: PoseName = settled ? (phone ? (HAS_STAND ? "stand" : "hello") : "point") : "hello";
-  const pose: PoseName = phone ? rest : (hover ?? rest);
+  // The state machine decides the base pose: wave while greeting / waking / welcoming back, otherwise crossed arms
+  // (or the optional sleep render while asleep). Nav hover can swap in the thinking pose on non-phones, only while she is active.
+  const base: PoseName = state === "greeting" || state === "waking" || state === "welcome-back" ? "hello" : state === "sleeping" && HAS_SLEEP ? "sleep" : "cross";
+  const pose: PoseName = !phone && state === "active" && hover ? hover : base;
   const [hint, setHint] = useState(false);
   preload(RIG.body, { as: "image", fetchPriority: "high" });
 
@@ -100,7 +97,7 @@ export function Character() {
   const poseRef = useRef<PoseName>(pose); poseRef.current = pose;
   const hasMouse = useRef(false);
   const waving = useRef(false);
-  const canTrack = () => !reduce && !phoneRef.current && (poseRef.current === "hello" || poseRef.current === "point") && (stateRef.current === "greeting" || stateRef.current === "active");
+  const canTrack = () => !reduce && !phoneRef.current && (poseRef.current === "hello" || poseRef.current === "cross") && (stateRef.current === "greeting" || stateRef.current === "active" || stateRef.current === "welcome-back");
 
   /* pose changes come from the navigation (hover) via a window event */
   useEffect(() => {
@@ -109,26 +106,27 @@ export function Character() {
     return () => window.removeEventListener("character-pose", onPose);
   }, []);
 
-  /* one timer, started when the hero mounts: after 10 s the pointing pose becomes the resting pose (never loops) */
+  /* warm the other poses so a crossfade never waits on the network */
   useEffect(() => {
-    const warm = (u: string) => { const i = new Image(); i.src = u; i.decode?.().catch(() => {}); };   // preload so the fade never waits on the network
-    warm(POSE_RIGS.point.src); if (HAS_STAND) warm(POSE_RIGS.stand.src);
-    const t = setTimeout(() => setSettled(true), 10_000);
-    return () => clearTimeout(t);
+    const warm = (u: string) => { const i = new Image(); i.src = u; i.decode?.().catch(() => {}); };
+    POSES.forEach((n) => warm(POSE_RIGS[n].src));
   }, []);
 
-  /* phones: once the wave is over, show the desktop suggestion once per session; auto-hides after 7 s, tap to dismiss */
+  /* phones: after the first wave, one friendly suggestion per session; fades after 7 s, tap to dismiss */
   useEffect(() => {
-    if (!settled || !phone) { setHint(false); return; }
+    if (state !== "active" || !phone) return;
     let seen = false; try { seen = sessionStorage.getItem(HINT_KEY) === "1"; } catch {}
     if (seen) return;
-    setHint(true); try { sessionStorage.setItem(HINT_KEY, "1"); } catch {}
-    const t = setTimeout(() => setHint(false), 7000);
-    return () => clearTimeout(t);
-  }, [settled, phone]);
+    let t2: ReturnType<typeof setTimeout>;
+    const t1 = setTimeout(() => {                       // let the "Hi there!" bubble finish fading first: never two messages at once
+      setHint(true); try { sessionStorage.setItem(HINT_KEY, "1"); } catch {}
+      t2 = setTimeout(() => setHint(false), 7000);
+    }, 900);
+    return () => { clearTimeout(t1); clearTimeout(t2); setHint(false); };
+  }, [state, phone]);
   useEffect(() => {
     const a = animate(baseOpacity, pose === "hello" ? 1 : 0, { duration: reduce ? 0 : 0.7, ease: "easeInOut" });
-    if (pose !== "hello" && pose !== "point") { gxT.set(0); gyT.set(0); }
+    if (pose !== "hello" && pose !== "cross") { gxT.set(0); gyT.set(0); }
     return () => a.stop();
   }, [pose, reduce, baseOpacity, gxT, gyT]);
 
@@ -140,7 +138,7 @@ export function Character() {
       hasMouse.current = true;
       if (!canTrack() || !root.current) return;
       const r = root.current.getBoundingClientRect();
-      const face = poseRef.current === "point" && POSE_RIGS.point.head ? POSE_RIGS.point.head.face : [faceX, faceY];
+      const face = poseRef.current === "cross" && POSE_RIGS.cross.head ? POSE_RIGS.cross.head.face : [faceX, faceY];
       const fx = r.left + (face[0] / W) * r.width, fy = r.top + (face[1] / H) * r.height;
       gxT.set(Math.tanh((e.clientX - fx) / (window.innerWidth * 0.32)));
       gyT.set(Math.tanh((e.clientY - fy) / (window.innerHeight * 0.32)) * 0.9);
@@ -160,7 +158,7 @@ export function Character() {
     const doBlink = async () => { await animate(blink, 1, { duration: 0.07, ease: "easeOut" }); await animate(blink, 0, { duration: 0.14, ease: "easeIn" }); };
     const loop = async () => {
       if (!alive) return;
-      if (!document.hidden && (poseRef.current === "hello" || poseRef.current === "point") && ["active", "greeting", "welcome-back"].includes(stateRef.current)) {
+      if (!document.hidden && (poseRef.current === "hello" || poseRef.current === "cross") && ["active", "greeting", "welcome-back"].includes(stateRef.current)) {
         await doBlink();
         if (Math.random() < 0.18 && alive) { await new Promise((r) => setTimeout(r, 120)); await doBlink(); }
         if (!hasMouse.current && alive) { gxT.set((Math.random() - 0.5) * 0.9); gyT.set((Math.random() - 0.5) * 0.4); setTimeout(() => { if (!hasMouse.current) { gxT.set(0); gyT.set(0); } }, 1300); }
@@ -192,8 +190,10 @@ export function Character() {
     fingerRot.set(w.amp * 4 * sw(1.7));
   });
   useEffect(() => {
-    if (state === "greeting") { const t = setTimeout(() => playWave(2.8), 700); return () => clearTimeout(t); }
-    if (state === "welcome-back") playWave(1.9);
+    // two friendly waves per wave phase (greeting / welcome back), spread across the ~10 s
+    const plan = state === "greeting" ? [[700, 2.8], [5400, 2.8]] : state === "welcome-back" ? [[150, 2.4], [5200, 2.4]] : [];
+    const ts = plan.map(([at, dur]) => setTimeout(() => playWave(dur), at));
+    return () => ts.forEach(clearTimeout);
   }, [state]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* sleepiness + head tilt follow the state machine */
@@ -205,12 +205,13 @@ export function Character() {
     return () => { a.stop(); b.stop(); };
   }, [state, reduce, sleepy, tilt]);
 
-  const bubble = pose !== "hello" ? undefined : state === "greeting" || state === "welcome-back" ? BUBBLES[state] : sleepBubble ? { a: "Taking a little break... 😴" } : undefined;
+  // one message at a time, tied to the state that owns it
+  const bubble = state === "greeting" ? MSG.greeting : state === "welcome-back" && welcomeBubble ? MSG.welcomeBack : state === "sleeping" && sleepBubble ? MSG.sleeping : undefined;
   const hop = reduce ? undefined : state === "waking" ? { y: [0, -9, 0], transition: { duration: 0.8, ease: "easeOut" as const } } : { y: 0 };
   const bx = ((faceX + 120) / W) * 100, by = ((faceY - 190) / H) * 100;
 
   return (
-    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onClick={() => playWave(2.0)}>
+    <div className="relative mx-auto w-full" ref={root} style={{ aspectRatio: `${W} / ${H}` }} onPointerEnter={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerMove={(e) => { if (e.pointerType !== "touch") wake(); }} onPointerDown={() => wake()}>
       <motion.div className="absolute inset-0" animate={hop} initial={reduce ? false : { y: 20 }}>
         <motion.div className="absolute inset-0" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, ease: "easeOut" }}>
           {/* base pose (rigged): body without hand, hand at the wrist pivot, head with eyes */}
@@ -275,12 +276,11 @@ export function Character() {
 
       <AnimatePresence>
         {bubble && (
-          <motion.div key={bubble.a} role="status" aria-live="polite"
-            initial={{ opacity: 0, scale: 0.8, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-none absolute z-10 w-max max-w-[9rem] origin-bottom-left rounded-2xl rounded-bl-md border border-clay bg-paper px-3.5 py-2 text-[0.78rem] leading-snug shadow-lg shadow-brown/15 sm:max-w-[11.5rem] sm:px-4 sm:py-2.5 sm:text-[0.82rem]"
+          <motion.div key={bubble} role="status" aria-live="polite"
+            initial={{ opacity: 0, scale: 0.85, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: -4 }} transition={{ duration: reduce ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-none absolute z-10 w-max max-w-[9rem] origin-bottom-left rounded-2xl rounded-bl-md border border-clay bg-paper px-3.5 py-2 text-[0.78rem] font-medium leading-snug shadow-lg shadow-brown/15 sm:max-w-[11.5rem] sm:px-4 sm:py-2.5 sm:text-[0.82rem]"
             style={{ left: `${bx}%`, top: `${Math.max(by, -2)}%` }}>
-            <p className="font-medium">{bubble.a}{bubble.wave && <span aria-hidden className={`ml-1 inline-block origin-[70%_80%] ${reduce ? "" : "wave-hand"}`}>👋</span>}</p>
-            {bubble.b && <p className="text-ink-soft">{bubble.b}</p>}
+            {bubble}
           </motion.div>
         )}
       </AnimatePresence>
@@ -297,9 +297,9 @@ export function Character() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {state === "sleeping" && pose === "hello" && (
+        {state === "sleeping" && (
           <motion.div aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }}
-            className="pointer-events-none absolute z-10 font-display font-semibold text-terra-deep" style={{ left: `${bx}%`, top: `${Math.max(by + 3, 1)}%` }}>
+            className="pointer-events-none absolute z-10 font-display font-semibold text-terra-deep" style={{ left: `${((faceX - 150) / W) * 100}%`, top: `${Math.max(by + 4, 2)}%` }}>
             {["Z", "z", "z"].map((z, i) => (
               <span key={i} className={`absolute ${reduce ? "" : "zzz"}`} style={{ animationDelay: `${i * 0.9}s`, fontSize: `${1.25 - i * 0.2}rem`, left: i * 10, top: -i * 12, opacity: reduce ? 0.8 - i * 0.2 : undefined }}>{z}</span>
             ))}

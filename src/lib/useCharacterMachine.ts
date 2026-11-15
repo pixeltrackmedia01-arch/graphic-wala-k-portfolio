@@ -3,22 +3,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CharState = "greeting" | "active" | "idle" | "sleeping" | "waking" | "welcome-back";
 
-const IDLE_MS = 27_000;      // inactivity before the character gets drowsy
-const DROWSY_MS = 3_500;     // idle (eyes closing) -> sleeping
-const GREETING_MS = 5_200;
-const WAKE_MS = 900;
-const WELCOME_BACK_MS = 3_800;
-const SLEEP_BUBBLE_MS = 4_500;
-
-/**
- * Small, leak-free state machine for the hero character.
- * - one lazily re-armed inactivity timer (no timer churn on every mouse move)
- * - "welcome back" only after a genuine sleep (idle -> active is silent)
- * - every timer and listener is cleared on unmount
+/*
+ * Lifecycle (repeats for the whole visit):
+ *   greeting (wave, 10 s) -> active (crossed arms)
+ *   active --(no activity ~65 s: 62 s + 3.5 s drowsy)--> sleeping
+ *   sleeping --(visitor hovers / taps HER)--> waking -> welcome-back (wave, 10 s) -> active -> ...
+ * Only one timer of each kind can exist; every timer and listener is cleared on unmount.
  */
+const GREETING_MS = 10_000;
+const IDLE_MS = 62_000;         // inactivity before she gets drowsy (eyes start closing)
+const DROWSY_MS = 3_500;        // drowsy -> asleep   (62 + 3.5 = ~65 s of inactivity)
+const WAKE_MS = 900;            // eyes open while she turns to wave
+const WELCOME_BACK_MS = 10_000; // wave pose, then back to crossed arms
+const WELCOME_BUBBLE_MS = 4_500;
+const SLEEP_BUBBLE_MS = 9_000;
+
 export function useCharacterMachine() {
   const [state, setState] = useState<CharState>("greeting");
   const [sleepBubble, setSleepBubble] = useState(false);
+  const [welcomeBubble, setWelcomeBubble] = useState(false);
   const stateRef = useRef<CharState>("greeting");
   const last = useRef(0);
   const timers = useRef<Record<string, ReturnType<typeof setTimeout> | undefined>>({});
@@ -27,60 +30,67 @@ export function useCharacterMachine() {
   const later = (k: string, fn: () => void, ms: number) => { clear(k); timers.current[k] = setTimeout(() => { timers.current[k] = undefined; fn(); }, ms); };
   const go = useCallback((s: CharState) => { stateRef.current = s; setState(s); }, []);
 
+  /** Starts (or keeps) the single inactivity watcher. It re-checks the last-activity time when it fires. */
   const armIdle = useCallback(() => {
-    if (timers.current.idle) return; // already armed; it re-checks lastActivity when it fires
+    if (timers.current.idle) return;
     const check = () => {
       timers.current.idle = undefined;
+      if (stateRef.current !== "active") return;            // never fall asleep mid-animation; re-armed when she is active again
       const rest = IDLE_MS - (Date.now() - last.current);
       if (rest > 250) { timers.current.idle = setTimeout(check, rest); return; }
-      if (stateRef.current === "active") {
-        go("idle");
-        later("sleep", () => {
-          if (stateRef.current !== "idle") return;
-          go("sleeping");
-          setSleepBubble(true);
-          later("sleepBubble", () => setSleepBubble(false), SLEEP_BUBBLE_MS);
-        }, DROWSY_MS);
-      } else armIdle();
+      go("idle");
+      later("sleep", () => {
+        if (stateRef.current !== "idle") return;
+        go("sleeping");
+        setSleepBubble(true);
+        later("sleepBubble", () => setSleepBubble(false), SLEEP_BUBBLE_MS);
+      }, DROWSY_MS);
     };
     timers.current.idle = setTimeout(check, IDLE_MS);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [go]);
 
-  const poke = useCallback(() => {
-    last.current = Date.now();
-    const s = stateRef.current;
-    if (s === "sleeping") {
-      clear("sleepBubble"); setSleepBubble(false);
-      go("waking");
-      later("wake", () => {
-        go("welcome-back");
-        later("wb", () => { go("active"); last.current = Date.now(); armIdle(); }, WELCOME_BACK_MS);
-      }, WAKE_MS);
-    } else if (s === "idle") {
-      clear("sleep");
-      go("active"); // only drowsy: wake silently, no "welcome back"
-    }
+  const becomeActive = useCallback(() => {
+    go("active");
+    last.current = Date.now();   // a full inactivity period starts now, so she can't fall straight back asleep
     armIdle();
   }, [armIdle, go]);
 
+  /** Meaningful visitor activity anywhere on the page. Resets inactivity; does NOT wake a sleeping character. */
+  const poke = useCallback(() => {
+    last.current = Date.now();
+    if (stateRef.current === "idle") { clear("sleep"); becomeActive(); }   // only drowsy: perk up silently
+  }, [becomeActive]);
+
+  /** The visitor hovers or taps the character. Wakes her only if she is asleep (or drowsy). */
+  const wake = useCallback(() => {
+    const s = stateRef.current;
+    if (s === "idle") { clear("sleep"); becomeActive(); return; }
+    if (s !== "sleeping") return;
+    clear("sleepBubble"); setSleepBubble(false);
+    go("waking");
+    later("wake", () => {
+      go("welcome-back");
+      setWelcomeBubble(true);
+      later("wbBubble", () => setWelcomeBubble(false), WELCOME_BUBBLE_MS);
+      later("wb", () => { setWelcomeBubble(false); becomeActive(); }, WELCOME_BACK_MS);
+    }, WAKE_MS);
+  }, [becomeActive, go]);
+
   useEffect(() => {
     last.current = Date.now();
-    armIdle(); // inactivity is measured from page load / last interaction
-    later("greet", () => { if (stateRef.current === "greeting") go("active"); }, GREETING_MS);
+    later("greet", () => becomeActive(), GREETING_MS);
     const opts: AddEventListenerOptions = { passive: true };
     const evs = ["pointermove", "pointerdown", "keydown", "scroll", "wheel", "touchstart", "touchmove"] as const;
-    // throttle: genuine activity only needs ~4 checks a second
-    let lastCall = 0;
+    let lastCall = 0;                                   // ~4 checks a second is plenty
     const onAct = () => { const n = performance.now(); if (n - lastCall < 250) return; lastCall = n; poke(); };
     evs.forEach((e) => window.addEventListener(e, onAct, opts));
-    const timersSnapshot = timers.current;
+    const snap = timers.current;
     return () => {
       evs.forEach((e) => window.removeEventListener(e, onAct));
-      Object.keys(timersSnapshot).forEach((k) => { const t = timersSnapshot[k]; if (t) clearTimeout(t); timersSnapshot[k] = undefined; });
+      Object.keys(snap).forEach((k) => { const t = snap[k]; if (t) clearTimeout(t); snap[k] = undefined; });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { state, sleepBubble };
+  return { state, sleepBubble, welcomeBubble, wake };
 }

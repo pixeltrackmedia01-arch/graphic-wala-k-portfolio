@@ -15,86 +15,6 @@
         ]
       ]
     },
-    "point": {
-      "file": "pose-12.webp",
-      "eyeCentres": [
-        [
-          492,
-          321
-        ],
-        [
-          592,
-          316
-        ]
-      ],
-      "align": "height",
-      "head": {
-        "neck": {
-          "cutTop": 520,
-          "cutBottom": 552,
-          "pivotX": 545,
-          "pivotY": 505
-        },
-        "faceCentre": [
-          542,
-          318
-        ],
-        "eyes": {
-          "a": {
-            "iris": [
-              496,
-              322.5,
-              10.6
-            ],
-            "open": [
-              493,
-              323.5,
-              22,
-              13.5,
-              0
-            ],
-            "lidSample": [
-              493,
-              297
-            ],
-            "cheekSample": [
-              493,
-              344
-            ],
-            "scleraSample": [
-              482,
-              326
-            ]
-          },
-          "b": {
-            "iris": [
-              589,
-              315,
-              11.0
-            ],
-            "open": [
-              594,
-              315,
-              26,
-              14,
-              0
-            ],
-            "lidSample": [
-              594,
-              298
-            ],
-            "cheekSample": [
-              594,
-              338
-            ],
-            "scleraSample": [
-              572,
-              318
-            ]
-          }
-        }
-      }
-    },
     "think": {
       "file": "pose-6.webp",
       "eyeCentres": [
@@ -109,8 +29,88 @@
       ],
       "cropped": true
     },
-    "stand": {
-      "file": "pose-stand-mobile.webp",
+    "cross": {
+      "file": "pose-13.webp",
+      "eyeCentres": [
+        [
+          514,
+          311
+        ],
+        [
+          606,
+          300
+        ]
+      ],
+      "align": "height",
+      "head": {
+        "neck": {
+          "cutTop": 505,
+          "cutBottom": 535,
+          "pivotX": 555,
+          "pivotY": 495
+        },
+        "faceCentre": [
+          560,
+          305
+        ],
+        "eyes": {
+          "a": {
+            "iris": [
+              513.8,
+              311,
+              10.6
+            ],
+            "open": [
+              512,
+              310,
+              23.4,
+              14,
+              0
+            ],
+            "lidSample": [
+              512,
+              290
+            ],
+            "cheekSample": [
+              512,
+              331
+            ],
+            "scleraSample": [
+              494,
+              314
+            ]
+          },
+          "b": {
+            "iris": [
+              606,
+              300,
+              11
+            ],
+            "open": [
+              610,
+              300.6,
+              24,
+              13,
+              0
+            ],
+            "lidSample": [
+              606,
+              284
+            ],
+            "cheekSample": [
+              606,
+              320
+            ],
+            "scleraSample": [
+              627,
+              302
+            ]
+          }
+        }
+      }
+    },
+    "sleep": {
+      "file": "pose-sleep.webp",
       "align": "height",
       "legs": true,
       "optional": true,
@@ -124,7 +124,7 @@
           0
         ]
       ],
-      "_comment": "Optional phone pose. Same character/dress, both arms relaxed, full body. Needs no measurements."
+      "_comment": "OPTIONAL dedicated sleeping render (same character/dress, eyes closed, head tilted). If absent, sleep = crossed-arm pose with eyelids closed + head tilt via the rig."
     }
   },
   "neck": {
