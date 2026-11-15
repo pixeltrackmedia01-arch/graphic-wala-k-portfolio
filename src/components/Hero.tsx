@@ -46,8 +46,12 @@ export function Hero() {
       <div className="wrap grid min-h-[calc(100svh-5rem)] items-center gap-6 pb-10 lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:pb-24 xl:gap-16">
         {/* left: introduction */}
         <div className="order-2 lg:order-1">
-          <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }} className="eyebrow mb-5 flex items-center gap-3">
-            <span className="h-px w-8 bg-terra" /> I&apos;m Mital.
+          <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }} className="mb-4 flex items-center gap-3 font-display text-[1.7rem] font-semibold leading-none text-terra-deep sm:text-[2rem]">
+            <span aria-hidden className="h-0.5 w-9 rounded bg-terra" />
+            <span className="relative">
+              <span aria-hidden className="absolute inset-x-[-0.25rem] bottom-[0.05em] -z-0 h-[0.42em] rounded-sm bg-terra/20" />
+              <span className="relative">I&apos;m <span className="italic text-terra">Mital.</span></span>
+            </span>
           </motion.p>
 
           <h1 id="hero-title" aria-label="Behind Every Click, There's a Strategy."
