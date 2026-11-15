@@ -10,6 +10,7 @@ import { Process } from "@/components/Process";
 import { Personal } from "@/components/Personal";
 import { Contact } from "@/components/Contact";
 import { ChatLoader } from "@/components/ChatLoader";
+import { FloatingAssistant } from "@/components/FloatingAssistant";
 
 export default function Page() {
   return (
@@ -29,6 +30,7 @@ export default function Page() {
         <Contact />
       </main>
       <ChatLoader />
+      <FloatingAssistant />
     </>
   );
 }
