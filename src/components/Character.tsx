@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { preload } from "react-dom";
 import { AnimatePresence, animate, motion, useAnimationFrame, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { RIG } from "@/lib/characterRig";
@@ -8,12 +8,25 @@ import { useCharacterMachine, type CharState } from "@/lib/useCharacterMachine";
 const clamp = (x: number, a = -1, b = 1) => Math.min(b, Math.max(a, x));
 const { w: W, h: H } = RIG;
 const [faceX, faceY] = RIG.face;
-export type PoseName = "hello" | "think" | "point";
-const POSES = Object.keys(RIG.poses) as (keyof typeof RIG.poses)[];
-const cutTopPct = (RIG.cutTop / H) * 100;
-const cutBottomPct = (RIG.cutBottom / H) * 100;
-const HEAD_MASK = `linear-gradient(to bottom, #000 ${cutTopPct}%, transparent ${cutBottomPct}%)`;
-const BODY_MASK = `linear-gradient(to bottom, transparent ${cutTopPct - 0.15}%, #000 ${cutTopPct}%)`;
+export type PoseName = "hello" | "think" | "point" | "stand";
+type PoseRig = { src: string; fadeBottom: boolean; bottom: number; head?: HeadRig };
+type EyeRig = { iris: { cx: number; cy: number; r: number }; open: { cx: number; cy: number; rx: number; ry: number; rot: number }; lidTop: string; lidBottom: string; lash: string; scleraTop: string; scleraBottom: string };
+type HeadRig = { cutTop: number; cutBottom: number; pivot: readonly number[]; face: readonly number[]; eyes: { a: EyeRig; b: EyeRig } };
+const POSE_RIGS = RIG.poses as unknown as Record<string, PoseRig>;
+const POSES = Object.keys(POSE_RIGS);
+const HAS_STAND = "stand" in POSE_RIGS;
+const maskTop = (cutTop: number, cutBottom: number) => [
+  `linear-gradient(to bottom, #000 ${(cutTop / H) * 100}%, transparent ${(cutBottom / H) * 100}%)`,   // head: above the neck
+  `linear-gradient(to bottom, transparent ${(cutTop / H) * 100 - 0.15}%, #000 ${(cutTop / H) * 100}%)`, // body: below it
+] as const;
+
+/* Phones only (tablets keep the desktop experience): narrow screens, or a short landscape touch screen. */
+const PHONE_QUERY = "(max-width: 639px), (pointer: coarse) and (max-height: 500px)";
+const subscribePhone = (cb: () => void) => { const m = matchMedia(PHONE_QUERY); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); };
+const usePhone = () => useSyncExternalStore(subscribePhone, () => matchMedia(PHONE_QUERY).matches, () => false);
+const HINT_KEY = "mc_desktop_hint_seen";
+const HINT_TEXT = "For the Full Experience, Go Desktop!";
+const [HEAD_MASK, BODY_MASK] = maskTop(RIG.cutTop, RIG.cutBottom);
 
 const BUBBLES: Partial<Record<CharState, { a: string; b?: string; wave?: boolean }>> = {
   greeting: { a: "Hi there!", b: "Welcome to my portfolio.", wave: true },
@@ -22,8 +35,7 @@ const BUBBLES: Partial<Record<CharState, { a: string; b?: string; wave?: boolean
 
 type EyeKey = "a" | "b";
 
-function Eye({ k, id, gx, gy, lid }: { k: EyeKey; id: string; gx: ReturnType<typeof useSpring>; gy: ReturnType<typeof useSpring>; lid: ReturnType<typeof useMotionValue<number>> }) {
-  const e = RIG.eyes[k];
+function Eye({ k, id, e, src, gx, gy, lid }: { k: EyeKey; id: string; e: EyeRig; src: string; gx: ReturnType<typeof useSpring>; gy: ReturnType<typeof useSpring>; lid: ReturnType<typeof useMotionValue<number>> }) {
   const o = e.open;
   const irisX = useTransform(gx, (v) => v * 3.2);
   const irisY = useTransform(gy, (v) => v * 2.1);
@@ -42,7 +54,7 @@ function Eye({ k, id, gx, gy, lid }: { k: EyeKey; id: string; gx: ReturnType<typ
       <g clipPath={`url(#${id}-o${k})`}>
         <circle cx={e.iris.cx} cy={e.iris.cy} r={e.iris.r - 0.8} fill={`url(#${id}-s${k})`} />
         <motion.g style={{ x: irisX, y: irisY }}>
-          <g clipPath={`url(#${id}-i${k})`}><image href={RIG.src} width={W} height={H} /></g>
+          <g clipPath={`url(#${id}-i${k})`}><image href={src} width={W} height={H} /></g>
         </motion.g>
       </g>
       {/* eyelid: scales down from the top to blink / close */}
@@ -61,44 +73,62 @@ export function Character() {
   const root = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<PoseName | null>(null);
   const [settled, setSettled] = useState(false);          // flips once, 10 s after the hero loads
-  const pose: PoseName = hover ?? (settled ? "point" : "hello");
-  preload(RIG.src, { as: "image", fetchPriority: "high" });
+  const phone = usePhone();
+  const phoneRef = useRef(phone); phoneRef.current = phone;
+  // desktop + tablet: wave -> pointing. phones: wave -> relaxed standing (or stay on the wave pose until that image exists). Never "point" on phones.
+  const rest: PoseName = settled ? (phone ? (HAS_STAND ? "stand" : "hello") : "point") : "hello";
+  const pose: PoseName = phone ? rest : (hover ?? rest);
+  const [hint, setHint] = useState(false);
+  preload(RIG.body, { as: "image", fetchPriority: "high" });
 
   /* motion values: updated outside React, so tracking never re-renders */
   const gxT = useMotionValue(0), gyT = useMotionValue(0);
-  const gx = useSpring(gxT, { stiffness: 120, damping: 22, mass: 0.6 });
-  const gy = useSpring(gyT, { stiffness: 120, damping: 22, mass: 0.6 });
+  const gx = useSpring(gxT, { stiffness: 260, damping: 26, mass: 0.5 });    // eyes: quick
+  const gy = useSpring(gyT, { stiffness: 260, damping: 26, mass: 0.5 });
+  const hx = useSpring(gxT, { stiffness: 70, damping: 18, mass: 0.9 });     // head: slower, so it trails the eyes
+  const hy = useSpring(gyT, { stiffness: 70, damping: 18, mass: 0.9 });
   const blink = useMotionValue(0), sleepy = useMotionValue(0), tilt = useMotionValue(0);
   const elbowRot = useMotionValue(0), wristRot = useMotionValue(0), fingerRot = useMotionValue(0);
   const wave = useRef({ amp: 0.1, freq: 0.32, target: 0.1, targetFreq: 0.32, phase: 0, until: 0 });
   const baseOpacity = useMotionValue(1);
   const lid = useTransform([blink, sleepy], ([b, s]: number[]) => Math.max(b, s));
-  const headRotate = useTransform([gx, tilt], ([g, t]: number[]) => g * 2.4 + t);
-  const headX = useTransform(gx, (v) => `${v * 0.55}%`);
-  const headY = useTransform([gy, tilt], ([g, t]: number[]) => `${g * 0.35 + t * 0.15}%`);
+  const headRotate = useTransform([hx, tilt], ([g, t]: number[]) => g * 2.4 + t);
+  const headX = useTransform(hx, (v) => `${v * 0.55}%`);
+  const headY = useTransform([hy, tilt], ([g, t]: number[]) => `${g * 0.35 + t * 0.15}%`);
 
   const stateRef = useRef<CharState>(state); stateRef.current = state;
   const poseRef = useRef<PoseName>(pose); poseRef.current = pose;
   const hasMouse = useRef(false);
   const waving = useRef(false);
-  const canTrack = () => !reduce && poseRef.current === "hello" && (stateRef.current === "greeting" || stateRef.current === "active");
+  const canTrack = () => !reduce && !phoneRef.current && (poseRef.current === "hello" || poseRef.current === "point") && (stateRef.current === "greeting" || stateRef.current === "active");
 
   /* pose changes come from the navigation (hover) via a window event */
   useEffect(() => {
-    const onPose = (e: Event) => setHover(((e as CustomEvent<PoseName | null>).detail ?? null));
+    const onPose = (e: Event) => !phoneRef.current && setHover(((e as CustomEvent<PoseName | null>).detail ?? null));
     window.addEventListener("character-pose", onPose);
     return () => window.removeEventListener("character-pose", onPose);
   }, []);
 
   /* one timer, started when the hero mounts: after 10 s the pointing pose becomes the resting pose (never loops) */
   useEffect(() => {
-    const warm = new Image(); warm.src = RIG.poses.point.src; warm.decode?.().catch(() => {});   // preload so the fade never waits on the network
+    const warm = (u: string) => { const i = new Image(); i.src = u; i.decode?.().catch(() => {}); };   // preload so the fade never waits on the network
+    warm(POSE_RIGS.point.src); if (HAS_STAND) warm(POSE_RIGS.stand.src);
     const t = setTimeout(() => setSettled(true), 10_000);
     return () => clearTimeout(t);
   }, []);
+
+  /* phones: once the wave is over, show the desktop suggestion once per session; auto-hides after 7 s, tap to dismiss */
+  useEffect(() => {
+    if (!settled || !phone) { setHint(false); return; }
+    let seen = false; try { seen = sessionStorage.getItem(HINT_KEY) === "1"; } catch {}
+    if (seen) return;
+    setHint(true); try { sessionStorage.setItem(HINT_KEY, "1"); } catch {}
+    const t = setTimeout(() => setHint(false), 7000);
+    return () => clearTimeout(t);
+  }, [settled, phone]);
   useEffect(() => {
     const a = animate(baseOpacity, pose === "hello" ? 1 : 0, { duration: reduce ? 0 : 0.7, ease: "easeInOut" });
-    if (pose !== "hello") { gxT.set(0); gyT.set(0); }
+    if (pose !== "hello" && pose !== "point") { gxT.set(0); gyT.set(0); }
     return () => a.stop();
   }, [pose, reduce, baseOpacity, gxT, gyT]);
 
@@ -110,7 +140,8 @@ export function Character() {
       hasMouse.current = true;
       if (!canTrack() || !root.current) return;
       const r = root.current.getBoundingClientRect();
-      const fx = r.left + (faceX / W) * r.width, fy = r.top + (faceY / H) * r.height;
+      const face = poseRef.current === "point" && POSE_RIGS.point.head ? POSE_RIGS.point.head.face : [faceX, faceY];
+      const fx = r.left + (face[0] / W) * r.width, fy = r.top + (face[1] / H) * r.height;
       gxT.set(Math.tanh((e.clientX - fx) / (window.innerWidth * 0.32)));
       gyT.set(Math.tanh((e.clientY - fy) / (window.innerHeight * 0.32)) * 0.9);
     };
@@ -129,7 +160,7 @@ export function Character() {
     const doBlink = async () => { await animate(blink, 1, { duration: 0.07, ease: "easeOut" }); await animate(blink, 0, { duration: 0.14, ease: "easeIn" }); };
     const loop = async () => {
       if (!alive) return;
-      if (!document.hidden && poseRef.current === "hello" && ["active", "greeting", "welcome-back"].includes(stateRef.current)) {
+      if (!document.hidden && (poseRef.current === "hello" || poseRef.current === "point") && ["active", "greeting", "welcome-back"].includes(stateRef.current)) {
         await doBlink();
         if (Math.random() < 0.18 && alive) { await new Promise((r) => setTimeout(r, 120)); await doBlink(); }
         if (!hasMouse.current && alive) { gxT.set((Math.random() - 0.5) * 0.9); gyT.set((Math.random() - 0.5) * 0.4); setTimeout(() => { if (!hasMouse.current) { gxT.set(0); gyT.set(0); } }, 1300); }
@@ -204,21 +235,39 @@ export function Character() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={RIG.body} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
               <svg viewBox={`0 0 ${W} ${H}`} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
-                <Eye k="a" id={id} gx={gx} gy={gy} lid={lid} />
-                <Eye k="b" id={id} gx={gx} gy={gy} lid={lid} />
+                <Eye k="a" id={`${id}h`} e={RIG.eyes.a as EyeRig} src={RIG.body} gx={gx} gy={gy} lid={lid} />
+                <Eye k="b" id={`${id}h`} e={RIG.eyes.b as EyeRig} src={RIG.body} gx={gx} gy={gy} lid={lid} />
               </svg>
             </motion.div>
           </motion.div>
 
-          {/* other poses: whole-figure layers aligned to the base by the eyes; cross-faded */}
+          {/* other poses: whole-figure layers aligned to the base; cross-faded. Poses with a head rig also track the cursor. */}
           {POSES.map((n) => {
-            const p = RIG.poses[n];
+            const p = POSE_RIGS[n];
             const fade = p.fadeBottom ? `linear-gradient(to bottom, #000 ${((p.bottom - 60) / H) * 100}%, transparent ${(p.bottom / H) * 100}%)` : undefined;
+            const t = { duration: reduce ? 0 : 0.7, ease: "easeInOut" as const };
+            if (p.head) {
+              const [hm, bm] = maskTop(p.head.cutTop, p.head.cutBottom);
+              return (
+                <motion.div key={n} className="pointer-events-none absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: pose === n ? 1 : 0 }} transition={t}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.src} width={W} height={H} alt="" aria-hidden loading="eager" fetchPriority="low" decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" style={{ WebkitMaskImage: bm, maskImage: bm }} />
+                  <motion.div className="absolute inset-0" style={{ x: headX, y: headY, rotate: headRotate, originX: p.head.pivot[0] / W, originY: p.head.pivot[1] / H, WebkitMaskImage: hm, maskImage: hm }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.src} width={W} height={H} alt="" aria-hidden decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none" />
+                    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden>
+                      <Eye k="a" id={`${id}${n}`} e={p.head.eyes.a} src={p.src} gx={gx} gy={gy} lid={lid} />
+                      <Eye k="b" id={`${id}${n}`} e={p.head.eyes.b} src={p.src} gx={gx} gy={gy} lid={lid} />
+                    </svg>
+                  </motion.div>
+                </motion.div>
+              );
+            }
             return (
               // eslint-disable-next-line @next/next/no-img-element
               <motion.img key={n} src={p.src} width={W} height={H} alt="" aria-hidden loading="eager" fetchPriority="low" decoding="async" draggable={false}
                 className="pointer-events-none absolute inset-0 h-full w-full select-none" initial={{ opacity: 0 }} animate={{ opacity: pose === n ? 1 : 0 }}
-                transition={{ duration: reduce ? 0 : 0.7, ease: "easeInOut" }} style={fade ? { WebkitMaskImage: fade, maskImage: fade } : undefined} />
+                transition={t} style={fade ? { WebkitMaskImage: fade, maskImage: fade } : undefined} />
             );
           })}
         </motion.div>
@@ -233,6 +282,17 @@ export function Character() {
             <p className="font-medium">{bubble.a}{bubble.wave && <span aria-hidden className={`ml-1 inline-block origin-[70%_80%] ${reduce ? "" : "wave-hand"}`}>👋</span>}</p>
             {bubble.b && <p className="text-ink-soft">{bubble.b}</p>}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {hint && (
+          <motion.button type="button" key="desktop-hint" onClick={() => setHint(false)} aria-label={`${HINT_TEXT} (tap to dismiss)`}
+            initial={{ opacity: 0, scale: 0.85, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -4 }} transition={{ duration: reduce ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute z-10 w-max max-w-[8.4rem] origin-bottom-left rounded-2xl rounded-bl-md border border-clay bg-paper px-3.5 py-2 text-left text-[0.78rem] font-medium leading-snug shadow-lg shadow-brown/15"
+            style={{ left: `${bx}%`, top: `${Math.max(by, -2)}%` }}>
+            {HINT_TEXT}
+          </motion.button>
         )}
       </AnimatePresence>
 

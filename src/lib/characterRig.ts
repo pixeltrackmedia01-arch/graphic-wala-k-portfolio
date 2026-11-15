@@ -6,7 +6,59 @@ export const RIG = {
     "point": {
       "src": "/images/character/mital-point.webp",
       "fadeBottom": false,
-      "bottom": 1773
+      "bottom": 1773,
+      "head": {
+        "cutTop": 370.53,
+        "cutBottom": 402.44,
+        "pivot": [
+          419.46,
+          355.57
+        ],
+        "face": [
+          416.47,
+          169.1
+        ],
+        "eyes": {
+          "a": {
+            "iris": {
+              "cx": 370.6,
+              "cy": 173.59,
+              "r": 10.57
+            },
+            "open": {
+              "cx": 367.61,
+              "cy": 174.59,
+              "rx": 21.94,
+              "ry": 13.46,
+              "rot": 0
+            },
+            "lidTop": "#b0674a",
+            "lidBottom": "#e29973",
+            "lash": "#4f3528",
+            "scleraTop": "#d7cec7",
+            "scleraBottom": "#f0e6de"
+          },
+          "b": {
+            "iris": {
+              "cx": 463.34,
+              "cy": 166.11,
+              "r": 10.97
+            },
+            "open": {
+              "cx": 468.32,
+              "cy": 166.11,
+              "rx": 25.93,
+              "ry": 13.96,
+              "rot": 0
+            },
+            "lidTop": "#633a2e",
+            "lidBottom": "#eba380",
+            "lash": "#52392d",
+            "scleraTop": "#d8c9c2",
+            "scleraBottom": "#f1e1d9"
+          }
+        }
+      }
     },
     "think": {
       "src": "/images/character/mital-think.webp",

@@ -27,7 +27,73 @@
           316
         ]
       ],
-      "align": "height"
+      "align": "height",
+      "head": {
+        "neck": {
+          "cutTop": 520,
+          "cutBottom": 552,
+          "pivotX": 545,
+          "pivotY": 505
+        },
+        "faceCentre": [
+          542,
+          318
+        ],
+        "eyes": {
+          "a": {
+            "iris": [
+              496,
+              322.5,
+              10.6
+            ],
+            "open": [
+              493,
+              323.5,
+              22,
+              13.5,
+              0
+            ],
+            "lidSample": [
+              493,
+              297
+            ],
+            "cheekSample": [
+              493,
+              344
+            ],
+            "scleraSample": [
+              482,
+              326
+            ]
+          },
+          "b": {
+            "iris": [
+              589,
+              315,
+              11.0
+            ],
+            "open": [
+              594,
+              315,
+              26,
+              14,
+              0
+            ],
+            "lidSample": [
+              594,
+              298
+            ],
+            "cheekSample": [
+              594,
+              338
+            ],
+            "scleraSample": [
+              572,
+              318
+            ]
+          }
+        }
+      }
     },
     "think": {
       "file": "pose-6.webp",
@@ -42,6 +108,23 @@
         ]
       ],
       "cropped": true
+    },
+    "stand": {
+      "file": "pose-stand-mobile.webp",
+      "align": "height",
+      "legs": true,
+      "optional": true,
+      "eyeCentres": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "_comment": "Optional phone pose. Same character/dress, both arms relaxed, full body. Needs no measurements."
     }
   },
   "neck": {

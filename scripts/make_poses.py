@@ -18,6 +18,7 @@ cfg = json.load(open(os.path.join(ROOT, "scripts/pose-rig.config.json")))
 os.makedirs(OUT, exist_ok=True)
 
 def eye_mid(p): (a, b) = p["eyeCentres"]; return ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2), float(np.hypot(b[0] - a[0], b[1] - a[1]))
+cfg["poses"] = {k: v for k, v in cfg["poses"].items() if not (v.get("optional") and not os.path.exists(os.path.join(SRC, v["file"])))}
 cuts = {}
 for name, p in cfg["poses"].items():
     cuts[name] = cutout(Image.open(os.path.join(SRC, p["file"])), True)
@@ -27,14 +28,20 @@ base = cfg["base"]; bm, bd = eye_mid(cfg["poses"][base])
 placed = {}  # name -> (RGBA image scaled, offset x, y in base space)
 def bbox_h(im):
     a = np.array(im)[..., 3] > 128; ys, xs = np.where(a); return ys.min(), ys.max()
+def leg_x(im, top, bottom):
+    a = np.array(im)[..., 3] > 128; y0_, y1_ = int(top + (bottom - top) * 0.72), int(top + (bottom - top) * 0.9)
+    xs = np.where(a[y0_:y1_])[1]; return float(xs.mean())
 bt, bb_ = bbox_h(cuts[base])
 for name, p in cfg["poses"].items():
     m, d = eye_mid(p); s = bd / d
-    if p.get("align") == "height":      # same figure height as the base; horizontally by the face centre
+    if p.get("align") == "height":      # same figure height as the base
         t, b_ = bbox_h(cuts[name]); s = (bb_ - bt) / (b_ - t)
     im = cuts[name]; im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
     ox, oy = bm[0] - m[0] * s, bm[1] - m[1] * s
-    if p.get("align") == "height": oy = bt - t * s
+    if p.get("align") == "height":
+        oy = bt - t * s
+        if p.get("legs"):               # horizontal position: centre of the lower body (arms/pose independent); no eye measurements needed
+            ox = leg_x(cuts[base], bt, bb_) - leg_x(cuts[name], t, b_) * s
     placed[name] = (im, ox, oy, s)
 def bb(im): return im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
 x0 = y0 = 1e9; x1 = y1 = -1e9
@@ -54,6 +61,18 @@ for name in cfg["poses"]:
     c = on_canvas(name); c.save(os.path.join(OUT, f"mital-{name}.png"), optimize=True)
     c.save(os.path.join(OUT, f"mital-{name}.webp"), quality=88, alpha_quality=95, method=6)
     bbx = bb(c); rig["poses"][name] = {"src": f"/images/character/mital-{name}.webp", "fadeBottom": bool(cfg["poses"][name].get("cropped", False)), "bottom": bbx[3]}
+    hd = cfg["poses"][name].get("head")
+    if hd:   # head + eye rig for this pose, converted from its source pixels to canvas pixels
+        _im, _ox, _oy, _s = placed[name]; _dx, _dy = int(round(_ox - x0)), int(round(_oy - y0))
+        cv = lambda x, y: [round(x * _s + _dx, 2), round(y * _s + _dy, 2)]
+        srcp = Image.open(os.path.join(SRC, cfg["poses"][name]["file"])).convert("RGB"); eyes_p = {}
+        for k, e in hd["eyes"].items():
+            ix, iy, ir = e["iris"]; ox2, oy2, rx, ry, rot = e["open"]
+            fold = avg(srcp, e["lidSample"], 1); cheek = avg(srcp, e["cheekSample"], 1); scl = brightest(srcp, e["scleraSample"], 3)
+            eyes_p[k] = {"iris": {"cx": cv(ix, iy)[0], "cy": cv(ix, iy)[1], "r": round(ir * _s, 2)}, "open": {"cx": cv(ox2, oy2)[0], "cy": cv(ox2, oy2)[1], "rx": round(rx * _s, 2), "ry": round(ry * _s, 2), "rot": rot},
+                         "lidTop": hexc(fold * 0.8 + cheek * 0.2), "lidBottom": hexc(cheek), "lash": hexc(cheek * 0.35), "scleraTop": hexc(scl * 0.86), "scleraBottom": hexc(np.minimum(scl * 0.96, 255))}
+        nk = hd["neck"]
+        rig["poses"][name]["head"] = {"cutTop": cv(0, nk["cutTop"])[1], "cutBottom": cv(0, nk["cutBottom"])[1], "pivot": cv(nk["pivotX"], nk["pivotY"]), "face": cv(*hd["faceCentre"]), "eyes": eyes_p}
 
 # base: segmented raised arm (elbow -> wrist -> knuckles), full-canvas sprites so every layer shares one coordinate space
 A = json.loads(json.dumps(cfg["arm"]))
