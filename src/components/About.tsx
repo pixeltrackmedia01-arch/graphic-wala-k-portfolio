@@ -45,13 +45,13 @@ export function About() {
               <motion.div key="pro" role="tabpanel" id={`${base}-p-pro`} aria-labelledby={`${base}-t-pro`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }} className="grid gap-10 lg:grid-cols-12 lg:gap-16">
                 <div className="lg:col-span-7">
                   <p className="font-display text-2xl leading-snug md:text-[1.9rem]">
-                    Performance Marketing Lead with <span className="italic text-terra">5+ years</span> in D2C fashion and retail, managing Meta and Google Ads budgets of up to ₹50L a month.
+                    Performance Marketing professional with <span className="italic text-terra">5+ years</span> of experience driving D2C, eCommerce and retail growth through Meta Ads and Google Ads.
                   </p>
                   <p className="mt-6 max-w-2xl leading-relaxed text-ink-soft">
-                    I turn advertising data into meaningful business growth through performance marketing, strategic campaign optimization and data-driven decision-making. My work spans full-funnel strategy, creative testing, CRO and retargeting, with reliable tracking in GA4, GTM, Meta Pixel and CAPI — always aimed at profitable, scalable revenue across online sales and offline store visits.
+                    I manage monthly advertising budgets of up to ₹50L, achieving up to 10X ROAS and reducing CAC/CPL by 20–30% through data-driven campaign optimization, creative testing and full-funnel strategies.
                   </p>
                   <p className="mt-4 max-w-2xl leading-relaxed text-ink-soft">
-                    I combine paid media with SEO and AI-assisted workflows, and guide a team member who runs email, WhatsApp and SMS marketing and reporting.
+                    I&apos;m skilled in budget allocation, customer acquisition, conversion rate optimization, retargeting, Shopify analytics and marketing attribution, and I lead cross-functional work with design, merchandising, UX, SEO and lifecycle marketing teams to drive measurable revenue growth across online and offline channels. Proficient in GA4, GTM, Meta Pixel, CAPI, Looker Studio and AI-assisted marketing workflows.
                   </p>
                   <dl className="mt-8 grid gap-4 sm:grid-cols-2">
                     <div className="flex gap-3 rounded-xl border border-clay/70 bg-paper p-4"><GraduationCap className="mt-0.5 shrink-0 text-terra" size={20} /><div><dt className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Education</dt><dd className="mt-1 text-sm">B.B.A, Veer Narmad South Gujarat University (VNSGU), 2019</dd></div></div>
@@ -77,7 +77,7 @@ export function About() {
                     I enjoy the mix of analysis and creativity in performance marketing, and I&apos;m always learning — from new ad formats and tracking methods to AI tools that make testing faster and work smarter. Based in Ahmedabad, I work in English, Hindi and Gujarati.
                   </p>
                   <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-                    {["Curious about marketing innovation", "A steady learning mindset", "Keen to explore new tools and technology", "Collaborative with creative, content and web teams"].map((t) => (
+                    {["Curious about marketing innovation", "A steady learning mindset", "Keen to explore new tools and technology", "Collaborative with design, merchandising, UX, SEO and lifecycle teams"].map((t) => (
                       <li key={t} className="flex items-center gap-3 rounded-xl border border-clay/70 bg-paper px-4 py-3 text-sm"><Sparkles size={16} className="shrink-0 text-terra" />{t}</li>
                     ))}
                   </ul>

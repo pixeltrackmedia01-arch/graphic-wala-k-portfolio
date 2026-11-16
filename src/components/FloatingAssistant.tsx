@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { KNOWLEDGE } from "@/lib/knowledge";
+import { PROFILE } from "@/lib/content";
 import { useCharacterMachine } from "@/lib/useCharacterMachine";
 
 /*
@@ -11,7 +11,7 @@ import { useCharacterMachine } from "@/lib/useCharacterMachine";
  * Message priority:  1 sleeping  >  2 welcome-back  >  3 section message (once per section)  >  4 "Need anything? Tap me."
  * One bubble, one timer. Sections are detected with IntersectionObserver on a thin band across the middle of the viewport.
  */
-const PHONE = KNOWLEDGE.profile.phone;
+const PHONE = PROFILE.phone;
 const TEL = `tel:${PHONE.replace(/[^\d+]/g, "")}`;
 const CTX_MS = 4500;
 const GENERAL = "Need anything? Tap me.";
