@@ -8,22 +8,22 @@ const display = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", disp
 const sans = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 const description =
-  "Mital Chikhaliya is a Performance Marketing Lead in Ahmedabad with 5+ years in Meta Ads, Google Ads, D2C & eCommerce and growth marketing. Explore real campaign reports.";
+  "Mital Chikhaliya is a Performance Marketing Specialist in Ahmedabad with 5+ years in Meta Ads, Google Ads, D2C & eCommerce and growth marketing. Explore real campaign reports.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(PROFILE.siteUrl),
-  title: "Mital Chikhaliya — Performance Marketing Lead | Meta & Google Ads",
+  title: "Mital Chikhaliya — Performance Marketing Specialist | Meta & Google Ads",
   description,
   keywords: ["Performance Marketing", "Meta Ads", "Google Ads", "D2C", "eCommerce", "Lead Generation", "Ahmedabad", "Mital Chikhaliya"],
   authors: [{ name: PROFILE.name }],
   openGraph: {
-    title: "Mital Chikhaliya — Performance Marketing Lead",
+    title: "Mital Chikhaliya — Performance Marketing Specialist",
     description,
     type: "website",
     locale: "en_IN",
     images: [{ url: "/images/mital-character.webp", width: 704, height: 1527, alt: "Mital Chikhaliya illustrated portrait" }],
   },
-  twitter: { card: "summary_large_image", title: "Mital Chikhaliya — Performance Marketing Lead", description },
+  twitter: { card: "summary_large_image", title: "Mital Chikhaliya — Performance Marketing Specialist", description },
   icons: { icon: "/icon.svg" },
 };
 

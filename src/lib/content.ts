@@ -6,7 +6,7 @@
 
 export const PROFILE = {
   name: "Mital Chikhaliya",
-  title: "Performance Marketing Lead",
+  title: "Performance Marketing Specialist",
   experience: "5+ Years of Experience",
   positioning: ["Meta Ads", "Google Ads", "D2C", "eCommerce"],
   location: "Ahmedabad, India",
@@ -83,7 +83,7 @@ export const JOBS = [
     ],
   },
   {
-    company: "House of Panchhi", place: "Surat", role: "Digital Marketing Executive (Performance Marketing Lead)", period: "Sep 2023 – Apr 2026", current: false,
+    company: "House of Panchhi", place: "Surat", role: "Digital Marketing Executive (Performance Marketing Specialist)", period: "Sep 2023 – Apr 2026", current: false,
     points: [
       "Led end-to-end performance marketing strategy and execution for a D2C fashion brand across Meta Ads and Google Ads, focusing on customer acquisition, eCommerce sales and retargeting.",
       "Achieved up to 10X ROAS through structured full-funnel campaigns, creative A/B testing, audience segmentation and continuous campaign optimization.",
